@@ -134,6 +134,23 @@
   .progress-note textarea:focus{border-color:var(--navy);}
   .note-meta{font-size:11px;color:var(--muted);margin-top:6px;}
 
+  /* Documenten / SharePoint-links */
+  .docs{margin-top:16px;}
+  .doc-list{display:flex;flex-direction:column;gap:6px;margin-top:2px;}
+  .doc-row{display:flex;align-items:center;gap:10px;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:3px;padding:8px 11px;}
+  .doc-link{display:flex;align-items:center;gap:9px;min-width:0;text-decoration:none;color:var(--navy);font-weight:600;font-size:13px;}
+  .doc-link:hover{color:var(--accent);}
+  .doc-link--dead{color:var(--muted);cursor:default;}
+  .doc-ico{flex:0 0 auto;color:var(--accent);}
+  .doc-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .doc-open{font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap;letter-spacing:.02em;}
+  .doc-open--dead{color:var(--muted);}
+  .doc-remove{flex:0 0 auto;width:26px;height:26px;border:1px solid var(--line);border-radius:3px;background:#fff;color:var(--accent);font-size:16px;line-height:1;cursor:pointer;}
+  .doc-remove:hover{border-color:var(--accent);background:#fdeaed;}
+  .doc-empty{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .doc-add{margin-top:10px;}
+  .doc-hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;max-width:640px;}
+
   footer.foot{margin-top:28px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.7;}
   footer.foot a{color:var(--muted);}
   footer.foot::before{content:'';display:block;width:40px;height:3px;background:var(--accent);margin:0 auto 12px;border-radius:1px;}
@@ -169,7 +186,7 @@
     "Middel": { txt:"#1f2d53", bg:"#e8eaef" },
     "Laag":   { txt:"#5a6473", bg:"#f2f4f7" }
   };
-  var FIELD_ORDER = ["id","thema","entiteit","prioriteit","bron","owner","deadline","status","bijgewerkt","notitie","bevinding","risico","actie","eersteStap","kpi"];
+  var FIELD_ORDER = ["id","thema","entiteit","prioriteit","bron","owner","deadline","status","bijgewerkt","notitie","links","bevinding","risico","actie","eersteStap","kpi"];
   var DRAFT_KEY = "cvw-actieplan-draft-v1";
   var MONTHS = ["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"];
 
@@ -265,6 +282,29 @@
     state.draft[id] = ov;
     saveDraft(state.draft); /* no re-render: keep textarea focus */
   }
+  function linksOf(rec){ return Array.isArray(rec.links) ? rec.links : []; }
+  function safeUrl(u){
+    u = String(u || "").trim();
+    return /^https?:\/\//i.test(u) ? u : "";   /* alleen http(s) klikbaar */
+  }
+  function addLink(id, base){
+    var label = (window.prompt("Naam van het document:") || "").trim();
+    if(!label) return;
+    var url = (window.prompt("SharePoint- of weblink (https://…):") || "").trim();
+    if(!safeUrl(url)){ if(url) alert("Gebruik een geldige https://-link."); return; }
+    var ov = Object.assign({}, state.draft[id] || {});
+    var list = (ov.links ? ov.links : linksOf(base)).slice();
+    list.push({ label:label, url:url });
+    ov.links = list; ov.bijgewerkt = todayISO();
+    state.draft[id] = ov; saveDraft(state.draft); render();
+  }
+  function removeLink(id, base, idx){
+    var ov = Object.assign({}, state.draft[id] || {});
+    var list = (ov.links ? ov.links : linksOf(base)).slice();
+    list.splice(idx, 1);
+    ov.links = list; ov.bijgewerkt = todayISO();
+    state.draft[id] = ov; saveDraft(state.draft); render();
+  }
   function toggleExpand(id){ state.expanded[id] = !state.expanded[id]; render(); }
   function toggleAll(){
     state.allOpen = !state.allOpen;
@@ -281,7 +321,11 @@
     var recs = records();
     var items = recs.map(function(r){
       var o = {};
-      FIELD_ORDER.forEach(function(k){ o[k] = (r[k]!=null ? r[k] : (k==="notitie"||k==="bijgewerkt" ? "" : r[k])); });
+      FIELD_ORDER.forEach(function(k){
+        if(k==="links") o[k] = Array.isArray(r.links) ? r.links : [];
+        else if(k==="notitie"||k==="bijgewerkt") o[k] = r[k]||"";
+        else o[k] = r[k];
+      });
       return o;
     });
     var header =
@@ -291,12 +335,17 @@
       " * DIT BESTAND IS DE GEDEELDE BRON VAN WAARHEID voor het monitoring-dashboard.\n" +
       " *\n" +
       " * Status bijwerken kan op twee manieren:\n" +
-      " *   1) Open het dashboard, klik op “Bewerken”, pas status/notities aan en klik\n" +
-      " *      op “Exporteer data.js”. Vervang dit bestand door de download en commit.\n" +
-      " *   2) Pas hieronder handmatig de velden “status”, “notitie” en “bijgewerkt” aan.\n" +
+      " *   1) Open het dashboard, klik op “Bewerken”, pas status/notities/documenten aan\n" +
+      " *      en klik op “Exporteer data.js”. Vervang dit bestand door de download en commit.\n" +
+      " *   2) Pas hieronder handmatig de velden “status”, “notitie”, “bijgewerkt” of “links” aan.\n" +
       " *\n" +
       " * Toegestane status-waarden: “Open” (= Niet gestart), “Opgestart”, “Afgerond”.\n" +
       " * Datums in formaat JJJJ-MM-DD.\n" +
+      " *\n" +
+      " * “links” = gekoppelde documenten (bv. op SharePoint). Elk item:\n" +
+      " *      { \"label\": \"Naam document\", \"url\": \"https://...sharepoint.com/...\" }\n" +
+      " * De link staat in het publieke dashboard; het bestand blijft achter de SharePoint-\n" +
+      " * rechten van jullie team. Alleen http(s)-links worden klikbaar gemaakt.\n" +
       " */\n\n";
     var cfg = "window.MONITOR_CONFIG = " + JSON.stringify({
       title: CFG.title, subtitle: CFG.subtitle, kicker: CFG.kicker,
@@ -585,11 +634,13 @@
       ]);
     }
 
+    var docCount = linksOf(r).length;
     var aside = h("div",{class:"item-aside"},[
       statusControl,
       h("button",{class:"toggle", onclick:function(){ toggleExpand(r.id); }},[
         h("span",{}, expanded?"Verberg details":"Toon details"),
-        hasNote ? h("span",{class:"note-badge", style:{ color:"#0e6b60", background:"#e7f0ee" }}, "notitie") : null
+        docCount ? h("span",{class:"note-badge", style:{ color:"var(--navy)", background:"#e8eaef" }}, docCount+(docCount===1?" doc":" docs")) : null,
+        hasNote ? h("span",{class:"note-badge", style:{ color:"#155e2e", background:"#e3f3e9" }}, "notitie") : null
       ])
     ]);
 
@@ -651,7 +702,59 @@
         ])
       );
     }
+
+    var docsBlock = renderDocs(r);
+    if(docsBlock) details.appendChild(docsBlock);
+
     return details;
+  }
+
+  function renderDocs(r){
+    var links = linksOf(r);
+    /* read-only: niets tonen als er geen documenten zijn */
+    if(!state.edit && links.length === 0) return null;
+
+    var rows = links.map(function(lk, i){
+      var url = safeUrl(lk.url);
+      var name = h("div",{class:"doc-name"}, lk.label || url || "(naamloos)");
+      var left = url
+        ? h("a",{ class:"doc-link", href:url, target:"_blank", rel:"noopener noreferrer" },[ docIcon(), name ])
+        : h("div",{ class:"doc-link doc-link--dead", title:"Geen geldige https-link" },[ docIcon(), name ]);
+      var right = state.edit
+        ? h("button",{ class:"doc-remove", title:"Verwijderen", onclick:function(){ removeLink(r.id, r, i); } }, "×")
+        : (url ? h("span",{class:"doc-open"}, "openen ↗") : h("span",{class:"doc-open doc-open--dead"}, "geen link"));
+      return h("div",{class:"doc-row"},[ left, right ]);
+    });
+
+    var children = [
+      h("div",{class:"detail-lbl"}, "Gekoppelde documenten"),
+      links.length ? h("div",{class:"doc-list"}, rows) : null,
+      (!links.length && state.edit) ? h("div",{class:"doc-empty"}, "Nog geen documenten gekoppeld.") : null
+    ];
+
+    if(state.edit){
+      children.push(
+        h("button",{ class:"btn btn-sm doc-add", onclick:function(){ addLink(r.id, r); } }, "+ Document koppelen")
+      );
+      children.push(
+        h("div",{class:"doc-hint"}, "Plak een SharePoint- of weblink. De link komt in het (publieke) dashboard; het bestand zelf blijft beschermd door de SharePoint-rechten van je team.")
+      );
+    }
+    return h("div",{class:"docs"}, children.filter(Boolean));
+  }
+
+  function docIcon(){
+    /* eenvoudig document-icoon in lijnstijl (huisstijl: lijn-iconen) */
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns,"svg");
+    svg.setAttribute("viewBox","0 0 24 24"); svg.setAttribute("class","doc-ico");
+    svg.setAttribute("width","15"); svg.setAttribute("height","15");
+    var p = document.createElementNS(ns,"path");
+    p.setAttribute("d","M14 3v5h5M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z");
+    p.setAttribute("fill","none"); p.setAttribute("stroke","currentColor");
+    p.setAttribute("stroke-width","1.6"); p.setAttribute("stroke-linejoin","round"); p.setAttribute("stroke-linecap","round");
+    svg.appendChild(p);
+    return svg;
   }
 
   function updateNoteMeta(id){

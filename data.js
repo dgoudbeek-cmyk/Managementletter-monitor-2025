@@ -4,20 +4,25 @@
  * DIT BESTAND IS DE GEDEELDE BRON VAN WAARHEID voor het monitoring-dashboard.
  *
  * Status bijwerken kan op twee manieren:
- *   1) Open het dashboard, klik op “Bewerken”, pas status/notities aan en klik
- *      op “Exporteer data.js”. Vervang dit bestand door de download en commit.
- *   2) Pas hieronder handmatig de velden “status”, “notitie” en “bijgewerkt” aan.
+ *   1) Open het dashboard, klik op "Bewerken", pas status/notities/documenten aan
+ *      en klik op "Exporteer data.js". Vervang dit bestand door de download en commit.
+ *   2) Pas hieronder handmatig de velden "status", "notitie", "bijgewerkt" of "links" aan.
  *
- * Toegestane status-waarden: “Open” (= Niet gestart), “Opgestart”, “Afgerond”.
+ * Toegestane status-waarden: "Open" (= Niet gestart), "Opgestart", "Afgerond".
  * Datums in formaat JJJJ-MM-DD.
+ *
+ * "links" = gekoppelde documenten (bv. op SharePoint). Elk item:
+ *      { "label": "Budgethoudersregeling (concept)", "url": "https://...sharepoint.com/..." }
+ * De link staat in het publieke dashboard; het bestand zelf blijft achter de
+ * SharePoint-rechten van jullie team. Alleen http(s)-links worden klikbaar gemaakt.
  */
 
 window.MONITOR_CONFIG = {
-  title: "Actieplan Managementletter 2025",
-  subtitle: "Concern voor Werk · Opvolging bevindingen accountant",
-  kicker: "Monitoring · Voortgangsbewaking",
-  peildatum: "2026-06-23",
-  accent: "#d92b4a"
+  "title": "Actieplan Managementletter 2025",
+  "subtitle": "Concern voor Werk · Opvolging bevindingen accountant",
+  "kicker": "Monitoring · Voortgangsbewaking",
+  "peildatum": "2026-06-23",
+  "accent": "#d92b4a"
 };
 
 window.ACTIES = [
@@ -32,6 +37,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Budgethoudersregeling ontbreekt/ is niet formeel vastgelegd; onduidelijkheid in factuurprocuratie (m.n. productie).",
     "risico": "Ongeautoriseerde uitgaven; fouten in kostenclassificatie; risico op onrechtmatigheid.",
     "actie": "Stel formele Budgethoudersregeling op en configureer goedkeuringsmatrix in factuurprocuratiesysteem voor alle afdelingen; publiceer werkinstruction; train budgethouders.",
@@ -49,6 +55,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Bruto-netto controle ontbreekt voor Wsw en SSF; checks & balances onvolledig.",
     "risico": "Onjuiste loonbetalingen en afdrachten; naheffingen/boetes; foutieve balansposities.",
     "actie": "Voer maandelijkse bruto-netto controle uit voor Wsw en SSF; 4-ogenprincipe vastleggen; herzie/actualiseer (D)VO met SLAs, rapportages en controlematrix.",
@@ -66,6 +73,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Geen nacalculaties op orders; eerder als restrisico geaccepteerd.",
     "risico": "Onbekend rendement per order; risico op te lage prijzen.",
     "actie": "Pilot met ERP-orderadministratie (Exact) met eenvoudige nacalculatie op uren en materiaal bij top-10 orders; evalueer businesscase.",
@@ -83,6 +91,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Geen invoercontrole op (gewijzigde) tarieven; risico op foutieve facturatie.",
     "risico": "Onjuiste tarieven en facturen; opbrengsten fout.",
     "actie": "Implementeer masterdata-beheer: duale autorisatie voor nieuwe/gewijzigde tarieven, audit trail, periodieke steekproefcontrole; manager Montapak accordeert.",
@@ -100,6 +109,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Volledigheid opbrengstverantwoording onvoldoende aantoonbaar; contracten/prijsafspraken niet eenduidig vastgelegd.",
     "risico": "Onvolledige opbrengsten in jaarrekening.",
     "actie": "Centraliseer contract- en kortingenregister (SharePoint) met verplichte metadata; jaarultimo ‘volledigheidsdossier’ per opbrengststroom; overweeg saldobevestigingen op risicogebieden.",
@@ -117,6 +127,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Functiescheiding ontbreekt; weekprijzen en kortingen door één persoon; afspraken zelden formeel vastgelegd.",
     "risico": "Ongewenste of nadelige prijsafspraken; afhankelijkheid en continuïteitsrisico.",
     "actie": "Introduceer functiescheiding: (1) prijszetting door team met mandaat; (2) klantcontact/onderhandelingen gescheiden; (3) kortingen >x% met MT-goedkeuring; standaard contract-/offertemodellen.",
@@ -134,6 +145,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Factuurdata worden aangepast naar jaar van levering (antedatering).",
     "risico": "Onjuiste btw-periode; risico op boete belastingdienst.",
     "actie": "Stop antedateren; verwerk leveringen via transitoria/overlopende posten; actualiseer werkinstructie en monitor via steekproeven.",
@@ -151,6 +163,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "RvC benadrukte periodieke spendanalyse; 2025 nog niet uitgevoerd; aanbestedingsrisico onbekend.",
     "risico": "Niet-naleving aanbestedingsregels; gemiste besparingen.",
     "actie": "Voer spendanalyse 2025/2026 uit (Exact data, leveranciersclustering, drempeltoets); stel jaarlijkse cyclus en aanbestedingskalender vast.",
@@ -168,6 +181,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Geen organisatiebrede frauderisicoanalyse/fraudebeheersplan; integriteit beperkt zichtbaar in P&C-cyclus.",
     "risico": "Onvoldoende preventie/detectie; reputatie- en compliance risico.",
     "actie": "Voer integrale frauderisicoanalyse uit en stel Fraudebeheersplan op; veranker in P&C; periodieke evaluatie en rapportage aan RvC.",
@@ -185,6 +199,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "IT-bezetting kwetsbaar; rollen in ontwikkeling; Windows 365 en back-ups verbeterd; NIS2 nulmeting lopend.",
     "risico": "Continuïteits- en securityrisico; afhankelijkheid key persons.",
     "actie": "Rond NIS2 nulmeting af; stel IT-risicobeleid en roadmap op; verbeter kennisdeling; borg logische toegang, wijzigings- en continuïteitsbeheer; leveranciersmanagement formaliseren.",
@@ -202,6 +217,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Verantwoordingsgrens 1% (strikter); verordeningen en interne risicoanalyse/controleplan onvoldoende aangepast; voortgang interne controles achterloopt.",
     "risico": "Rechtmatigheidsfouten boven grens; onvolledige verantwoording.",
     "actie": "Actualiseer verordeningen; herijk risicoanalyse op 1%; stel planning/monitoring opdat interne controles begin febr. gereed zijn; rapporteer periodiek aan bestuur.",
@@ -219,6 +235,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Geen onafhankelijke VIC-functie belegd; methodologische lat hoger.",
     "risico": "Onvoldoende onafhankelijk oordeel; risico op tekortschietende interne controle.",
     "actie": "Richt Verbijzonderde Interne Controle (VIC) in: profiel, positionering, onafhankelijkheid; plan werkzaamheden en rapportage-lijn naar bestuur.",
@@ -236,6 +253,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "FMO-beleid en risicoanalyse onvoldoende uitgewerkt; monitoring ontbreekt.",
     "risico": "Rechtmatigheidsrisico (M&O-criterium); reputatieschade.",
     "actie": "Stel FMO-beleid en risicoanalyse op; koppel aan NV-processen; stel monitoring en rapportage in (KPI's/incidentenregistratie).",
@@ -253,6 +271,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "DVO's voldoen niet; ketenverplichtingen mogelijk; beleid/nulmeting in ontwikkeling.",
     "risico": "Onduidelijke eisen en toezicht; non-compliance en beveiligingsrisico's.",
     "actie": "Actualiseer DVO's met heldere eisen (BIO/NIS2/AVG), contractmanagement en certificeringen; leg periodieke monitoring vast.",
@@ -270,6 +289,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "BADO-wijziging: grondslag en optelling fouten+onzekerheden; minder ruimte; behoefte aan backtesting.",
     "risico": "Over-/onderschattingen; overschrijding tolerantie.",
     "actie": "Stel procedure op voor schattingen (onderbouwing, scenario's) en jaarlijkse backtesting; training voor opstellers.",
@@ -287,6 +307,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Voorzieningen voor RVU (Wsw) en verlofsparen verplicht; analyse bovenwettelijk (stuwmeren) nodig; 2024 nog niet opgenomen.",
     "risico": "Onjuiste balans; onvolledige lasten; rechtmatigheid.",
     "actie": "Bereken en boek voorziening RVU en verlofsparen; analyseer bovenwettelijke verlofsaldi op 'niet-gelijke omvang' en 'overmatig'; stel tijdspaarplannen op voor hoge saldi.",
@@ -304,6 +325,7 @@ window.ACTIES = [
     "status": "Open",
     "bijgewerkt": "",
     "notitie": "",
+    "links": [],
     "bevinding": "Jaarrekeningcontrole gepland; stukken 5 werkdagen vooraf gereed; LOTLS beschikbaar.",
     "risico": "Inefficiënte controle; vertraging oplevering.",
     "actie": "Werk met checklist en tijdslijn; wijs dossier-eigenaren aan; kwaliteitscheck voor aanlevering.",
