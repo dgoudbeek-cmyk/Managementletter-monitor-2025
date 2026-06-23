@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Fredoka:wght@600;700&family=Open+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     /* Concern voor Werk huisstijl */
@@ -44,8 +45,17 @@
   .head-deco--1{width:330px;height:330px;top:-120px;right:-90px;opacity:.10;}
   .head-deco--2{width:150px;height:150px;bottom:-70px;right:170px;opacity:.06;}
   header.top .wrap{position:relative;z-index:1;}
+  /* Live-verbinding badge */
+  .conn{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.10);color:rgba(255,255,255,.85);}
+  .conn-dot{width:8px;height:8px;border-radius:50%;background:#9aa3a9;flex:0 0 auto;}
+  .conn--live .conn-dot{background:#3ddc84;box-shadow:0 0 0 0 rgba(61,220,132,.6);animation:connpulse 2s infinite;}
+  .conn--live{color:#fff;}
+  .conn--connecting .conn-dot{background:#e8a020;animation:connpulse 1.2s infinite;}
+  .conn--error .conn-dot{background:#ff6b6b;}
+  .conn--offline .conn-dot{background:#9aa3a9;}
+  @keyframes connpulse{0%{box-shadow:0 0 0 0 rgba(61,220,132,.5);}70%{box-shadow:0 0 0 6px rgba(61,220,132,0);}100%{box-shadow:0 0 0 0 rgba(61,220,132,0);}}
   /* Concern voor Werk logo (reversed/secundair: wit woordmerk + rood beeldmerk) */
-  .brand-row{display:flex;align-items:center;gap:14px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.12);}
+  .brand-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.12);}
   .cvw-logo{display:flex;align-items:center;gap:13px;}
   .cvw-mark{flex:0 0 auto;width:40px;height:40px;display:block;}
   .cvw-word{font-family:'Fredoka','Barlow Condensed','Open Sans',sans-serif;font-weight:600;line-height:.9;text-transform:lowercase;color:#fff;letter-spacing:-.01em;}
@@ -207,12 +217,20 @@
 
   var BASE = (window.ACTIES || []).map(function(d){ return Object.assign({}, d); });
 
-  /* ---------- draft (local, unsaved edits) ---------- */
-  function loadDraft(){
+  /* ---------- Supabase (gedeelde, real-time status) ---------- */
+  var SUPABASE_URL = "https://hzajpvyjywosaudhtkgj.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_SPtb0GeimL8slCOMqJvOyA_KNoWow6P";
+  var SB_TABLE = "acties_status";
+  var sb = null;                 /* supabase client */
+  var connState = "offline";     /* offline | connecting | live | error */
+  var CONN_LABEL = { offline:"Offline", connecting:"Verbinden…", live:"Live", error:"Geen verbinding" };
+
+  /* lokale cache: dashboard toont direct laatst bekende stand, ook offline */
+  function loadCache(){
     try{ return JSON.parse(localStorage.getItem(DRAFT_KEY)) || {}; }catch(e){ return {}; }
   }
-  function saveDraft(d){
-    try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); }catch(e){}
+  function saveCache(m){
+    try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(m)); }catch(e){}
   }
 
   /* ---------- state ---------- */
@@ -221,17 +239,21 @@
     sort:"deadline", groupBy:"geen",
     expanded:{}, allOpen:false,
     edit:false,
-    draft: loadDraft()
+    remote: loadCache()          /* id -> { status, notitie, links, bijgewerkt } */
   };
 
-  /* records merged with draft overrides */
+  /* records merged with shared (Supabase) overrides */
   function records(){
     return BASE.map(function(d){
-      var ov = state.draft[d.id] || {};
-      return Object.assign({}, d, ov);
+      var ov = state.remote[d.id] || {};
+      var m = Object.assign({}, d);
+      if(ov.status!=null)        m.status = ov.status;
+      if(ov.notitie!=null)       m.notitie = ov.notitie;
+      if(Array.isArray(ov.links))m.links = ov.links;
+      if(ov.bijgewerkt!=null)    m.bijgewerkt = ov.bijgewerkt;
+      return m;
     });
   }
-  function draftCount(){ return Object.keys(state.draft).length; }
 
   /* ---------- helpers ---------- */
   function todayISO(){
@@ -283,19 +305,39 @@
   }
 
   /* ---------- actions ---------- */
+  /* lokaal toepassen + cachen (merge in state.remote) */
+  function applyLocal(id, patch){
+    state.remote[id] = Object.assign({}, state.remote[id] || {}, patch);
+    saveCache(state.remote);
+  }
+  /* volledige rij naar Supabase schrijven (upsert) */
+  function sbUpsert(id){
+    if(!sb) return;
+    var ov = state.remote[id] || {};
+    var row = {
+      id: id,
+      status: ov.status!=null ? ov.status : null,
+      notitie: ov.notitie!=null ? ov.notitie : null,
+      links: Array.isArray(ov.links) ? ov.links : null,
+      bijgewerkt: ov.bijgewerkt || null,
+      updated_at: new Date().toISOString()
+    };
+    sb.from(SB_TABLE).upsert(row, { onConflict:"id" }).then(function(res){
+      if(res.error){ console.warn("Opslaan mislukt:", res.error.message); setConn("error"); }
+      else if(connState!=="live"){ setConn("live"); }
+    });
+  }
+  var noteTimers = {};
   function setStatus(id, status){
-    var ov = Object.assign({}, state.draft[id] || {});
-    ov.status = status;
-    ov.bijgewerkt = todayISO();
-    state.draft[id] = ov;
-    saveDraft(state.draft); render();
+    applyLocal(id, { status:status, bijgewerkt: todayISO() });
+    render();
+    sbUpsert(id);
   }
   function setNote(id, value){
-    var ov = Object.assign({}, state.draft[id] || {});
-    ov.notitie = value;
-    ov.bijgewerkt = todayISO();
-    state.draft[id] = ov;
-    saveDraft(state.draft); /* no re-render: keep textarea focus */
+    applyLocal(id, { notitie:value, bijgewerkt: todayISO() });
+    /* geen re-render: behoud focus. Debounce de opslag naar de database. */
+    clearTimeout(noteTimers[id]);
+    noteTimers[id] = setTimeout(function(){ sbUpsert(id); }, 600);
   }
   function linksOf(rec){ return Array.isArray(rec.links) ? rec.links : []; }
   function safeUrl(u){
@@ -307,18 +349,16 @@
     if(!label) return;
     var url = (window.prompt("SharePoint- of weblink (https://…):") || "").trim();
     if(!safeUrl(url)){ if(url) alert("Gebruik een geldige https://-link."); return; }
-    var ov = Object.assign({}, state.draft[id] || {});
-    var list = (ov.links ? ov.links : linksOf(base)).slice();
+    var list = linksOf(base).slice();
     list.push({ label:label, url:url });
-    ov.links = list; ov.bijgewerkt = todayISO();
-    state.draft[id] = ov; saveDraft(state.draft); render();
+    applyLocal(id, { links:list, bijgewerkt: todayISO() });
+    render(); sbUpsert(id);
   }
   function removeLink(id, base, idx){
-    var ov = Object.assign({}, state.draft[id] || {});
-    var list = (ov.links ? ov.links : linksOf(base)).slice();
+    var list = linksOf(base).slice();
     list.splice(idx, 1);
-    ov.links = list; ov.bijgewerkt = todayISO();
-    state.draft[id] = ov; saveDraft(state.draft); render();
+    applyLocal(id, { links:list, bijgewerkt: todayISO() });
+    render(); sbUpsert(id);
   }
   function toggleExpand(id){ state.expanded[id] = !state.expanded[id]; render(); }
   function toggleAll(){
@@ -326,9 +366,57 @@
     var e = {}; BASE.forEach(function(d){ e[d.id]=state.allOpen; });
     state.expanded = e; render();
   }
-  function resetDraft(){
-    if(!confirm("Lokale wijzigingen wissen en terug naar de gepubliceerde status?")) return;
-    state.draft = {}; saveDraft(state.draft); render();
+
+  /* ---------- Supabase: laden, real-time, verbindingsstatus ---------- */
+  function rowToOverride(row){
+    return {
+      status:     row.status || undefined,
+      notitie:    row.notitie!=null ? row.notitie : undefined,
+      links:      Array.isArray(row.links) ? row.links : undefined,
+      bijgewerkt: row.bijgewerkt || undefined
+    };
+  }
+  function setConn(s){
+    connState = s;
+    var el = document.getElementById("conn-badge");
+    if(el){ el.className = "conn conn--"+s; var t = el.querySelector(".conn-txt"); if(t) t.textContent = CONN_LABEL[s]; }
+  }
+  function sbLoad(){
+    if(!sb) return;
+    sb.from(SB_TABLE).select("*").then(function(res){
+      if(res.error){ console.warn("Laden mislukt:", res.error.message); setConn("error"); return; }
+      (res.data || []).forEach(function(row){ if(row.id) state.remote[row.id] = rowToOverride(row); });
+      saveCache(state.remote);
+      render();
+    });
+  }
+  function sbSubscribe(){
+    if(!sb) return;
+    sb.channel("acties-status")
+      .on("postgres_changes", { event:"*", schema:"public", table:SB_TABLE }, function(payload){
+        var row = payload.new && payload.new.id ? payload.new : payload.old;
+        if(!row || !row.id) return;
+        if(payload.eventType === "DELETE"){ delete state.remote[row.id]; }
+        else { state.remote[row.id] = rowToOverride(payload.new); }
+        saveCache(state.remote);
+        var ae = document.activeElement;
+        var typing = ae && (ae.tagName === "TEXTAREA" || ae.tagName === "INPUT");
+        if(typing){ updateNoteMeta(row.id); }   /* niet herrenderen tijdens typen */
+        else render();
+      })
+      .subscribe(function(status){
+        if(status === "SUBSCRIBED") setConn("live");
+        else if(status === "CHANNEL_ERROR" || status === "TIMED_OUT") setConn("error");
+      });
+  }
+  function initSupabase(){
+    if(!window.supabase || !SUPABASE_URL){ setConn("offline"); return; }
+    try{
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      setConn("connecting");
+      sbLoad();
+      sbSubscribe();
+    }catch(e){ console.warn("Supabase init mislukt:", e); setConn("error"); }
   }
 
   /* ---------- export data.js ---------- */
@@ -456,7 +544,7 @@
         cvwDeco("head-deco--1", "#d92b4a", 8),
         cvwDeco("head-deco--2", "#ffffff", 22),
         h("div",{class:"wrap"},[
-          h("div",{class:"brand-row"}, cvwLogo()),
+          h("div",{class:"brand-row"}, [cvwLogo(), connBadge()]),
           h("div",{class:"head-row"},[
             h("div",{style:{minWidth:"280px"}},[
               h("div",{class:"kicker"}, CFG.kicker || "Monitoring · Voortgangsbewaking"),
@@ -486,15 +574,11 @@
 
     /* edit banner */
     if(state.edit){
-      var dc = draftCount();
       c.appendChild(
         h("div",{class:"banner banner-edit"},[
-          h("div",{}, dc>0
-            ? [h("b",{}, dc+(dc===1?" actie":" acties")+" gewijzigd. "), "Niet-geëxporteerde wijzigingen — lokaal in deze browser. Exporteer en commit data.js om ze online te delen."]
-            : [h("b",{},"Bewerkmodus. "), "Wijzig statussen en notities; exporteer daarna data.js en commit dat bestand."]),
+          h("div",{}, [h("b",{},"Bewerkmodus. "), "Statussen, notities en documenten worden automatisch opgeslagen en direct gedeeld met alle kijkers."]),
           h("div",{class:"banner-actions"},[
-            h("button",{class:"btn btn-sm btn-accent", onclick:exportData},"Exporteer data.js"),
-            dc>0 ? h("button",{class:"btn btn-sm", onclick:resetDraft},"Wijzigingen wissen") : null
+            h("button",{class:"btn btn-sm", onclick:exportData},"Back-up exporteren")
           ])
         ])
       );
@@ -627,6 +711,14 @@
         h("span",{},"concern"),
         h("span",{},"voor werk")
       ])
+    ]);
+  }
+
+  function connBadge(){
+    return h("div",{ id:"conn-badge", class:"conn conn--"+connState,
+      title:"Live verbinding met de gedeelde database — wijzigingen zijn meteen voor iedereen zichtbaar." },[
+      h("span",{class:"conn-dot"}),
+      h("span",{class:"conn-txt"}, CONN_LABEL[connState])
     ]);
   }
 
@@ -818,7 +910,7 @@
 
   function updateNoteMeta(id){
     var el = document.getElementById("note-meta-"+id);
-    if(el){ var ov=state.draft[id]||{}; el.textContent = ov.bijgewerkt ? ("Laatst bijgewerkt: "+fmtDateLong(ov.bijgewerkt)) : "Nog niet bijgewerkt"; }
+    if(el){ var ov=state.remote[id]||{}; el.textContent = ov.bijgewerkt ? ("Laatst bijgewerkt: "+fmtDateLong(ov.bijgewerkt)) : "Nog niet bijgewerkt"; }
   }
 
   function detailBlock(label, value, span){
@@ -835,6 +927,7 @@
     );
   } else {
     render();
+    initSupabase();
   }
 })();
 </script>

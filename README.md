@@ -21,29 +21,39 @@ publicatiebranch (zie [`.github/workflows/deploy-pages.yml`](.github/workflows/d
 | `data.js` | **De gedeelde bron van waarheid**: alle acties met status, notities en metadata. |
 | `.github/workflows/deploy-pages.yml` | Publiceert automatisch naar GitHub Pages. |
 
-De status die bezoekers zien komt **uitsluitend** uit `data.js`. Wijzigingen zijn
-dus voor iedereen gelijk en versiebeheerd — niet per browser.
+`data.js` bevat de **vaste** inhoud (themas, deadlines, bevindingen, owners). De
+**status, voortgangsnotities en gekoppelde documenten** worden real-time gedeeld
+via een Supabase-database — wijzigingen zijn meteen voor alle kijkers zichtbaar,
+zonder verversen en zonder commit.
 
-## ✏️ Status bijwerken
-
-Er zijn twee manieren. **Manier 1 is de makkelijkste.**
-
-### 1. Via de bewerkmodus in het dashboard (aanbevolen)
+## ✏️ Status bijwerken (real-time)
 
 1. Open het dashboard en klik rechtsboven in de werkbalk op **“Bewerken”**.
-2. Pas per actie de status aan (Niet gestart / Opgestart / Afgerond) en vul een
-   **voortgangsnotitie** in. De datum “laatst bijgewerkt” wordt automatisch gezet.
-3. Klik op **“Exporteer data.js”** — er wordt een nieuw `data.js` gedownload.
-4. Vervang het `data.js` in deze repo door de download en **commit** het.
-   Bij de push publiceert GitHub Pages automatisch de nieuwe stand.
+2. Pas per actie de status aan (Niet gestart / Opgestart / Afgerond), vul een
+   **voortgangsnotitie** in of koppel een document.
+3. Klaar — meer niet. Elke wijziging wordt **automatisch opgeslagen** in de
+   database en is direct zichtbaar voor iedereen die het dashboard openheeft.
+   De badge rechtsboven toont **Live** als de verbinding actief is.
 
-> Wijzigingen in de bewerkmodus staan lokaal in jouw browser tot je ze
-> exporteert en commit. Een knop “Wijzigingen wissen” zet alles terug naar de
-> gepubliceerde stand.
+> “Back-up exporteren” downloadt desgewenst een momentopname als `data.js`.
 
-### 2. Handmatig in `data.js`
+## 🗄️ Database (Supabase)
 
-Pas per actie de velden `status`, `notitie` en `bijgewerkt` aan en commit.
+De gedeelde status staat in de tabel `acties_status` in een gratis Supabase-
+project. Configuratie (project-URL + publishable key) staat boven in het
+`<script>` van `index.html`. De tabel:
+
+| Kolom | Type | Betekenis |
+|-------|------|-----------|
+| `id` | text (PK) | Actie-id, bv. `P01`. |
+| `status` | text | `Open` / `Opgestart` / `Afgerond`. |
+| `notitie` | text | Voortgangsnotitie. |
+| `links` | jsonb | Gekoppelde documenten `[{label,url}]`. |
+| `bijgewerkt` | date | Datum laatste wijziging. |
+| `updated_at` | timestamptz | Technische tijdstempel. |
+
+Realtime staat aan op deze tabel; het dashboard valt terug op de laatst bekende
+stand (lokale cache) als de verbinding wegvalt.
 
 ## 🧱 Datamodel (`data.js`)
 
