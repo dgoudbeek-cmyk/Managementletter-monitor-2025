@@ -37,7 +37,13 @@
 
   /* Header */
   header.top{background:var(--header);color:#fff;padding:20px 0 0;}
-  .head-row{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;padding-bottom:22px;}
+  /* Concern voor Werk logo (reversed/secundair: wit woordmerk + rood beeldmerk) */
+  .brand-row{display:flex;align-items:center;gap:14px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.12);}
+  .cvw-logo{display:flex;align-items:center;gap:13px;}
+  .cvw-mark{flex:0 0 auto;width:38px;height:38px;display:block;}
+  .cvw-word{font-family:'Barlow Condensed','Open Sans',sans-serif;font-weight:700;line-height:.88;text-transform:lowercase;color:#fff;letter-spacing:.005em;}
+  .cvw-word span{display:block;font-size:25px;}
+  .head-row{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;padding-bottom:22px;padding-top:20px;}
   .kicker{font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--header-accent);text-transform:uppercase;margin-bottom:10px;}
   h1.title{margin:0;font-size:30px;font-weight:800;letter-spacing:.01em;line-height:1.08;color:#fff;font-family:'Barlow Condensed','Open Sans',sans-serif;text-transform:uppercase;}
   .subtitle{margin-top:8px;font-size:13.5px;color:rgba(255,255,255,.65);font-weight:500;}
@@ -440,7 +446,8 @@
     /* header */
     app.appendChild(
       h("header",{class:"top"},
-        h("div",{class:"wrap"},
+        h("div",{class:"wrap"},[
+          h("div",{class:"brand-row"}, cvwLogo()),
           h("div",{class:"head-row"},[
             h("div",{style:{minWidth:"280px"}},[
               h("div",{class:"kicker"}, CFG.kicker || "Monitoring · Voortgangsbewaking"),
@@ -461,7 +468,7 @@
               )
             ])
           ])
-        )
+        ])
       )
     );
 
@@ -572,6 +579,39 @@
 
   function resultText(n,total){
     return n + (n===1?" actie":" acties") + " getoond" + (n!==total ? (" van "+total) : "");
+  }
+
+  /* Concern voor Werk logo — beeldmerk (menselijke vorm met open armen,
+     als rode asterisk) + woordmerk. Reversed variant voor donkere header. */
+  function svgEl(tag, attrs, kids){
+    var n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for(var k in attrs){ n.setAttribute(k, attrs[k]); }
+    (kids||[]).forEach(function(c){ if(c) n.appendChild(c); });
+    return n;
+  }
+  function cvwMark(){
+    // 6 afgeronde 'armen' rond een centrum -> open menselijke vorm
+    var g = svgEl("g", {});
+    var i;
+    for(i=0;i<6;i++){
+      g.appendChild(svgEl("rect", {
+        x:"45", y:"6", width:"10", height:"36", rx:"5",
+        fill:"#d92b4a",
+        transform:"rotate("+(i*60)+" 50 50)"
+      }));
+    }
+    g.appendChild(svgEl("circle", { cx:"50", cy:"50", r:"9", fill:"#d92b4a" }));
+    return svgEl("svg", { viewBox:"0 0 100 100", class:"cvw-mark",
+      role:"img", "aria-label":"Concern voor Werk" }, [g]);
+  }
+  function cvwLogo(){
+    return h("div",{class:"cvw-logo", title:"Concern voor Werk"},[
+      cvwMark(),
+      h("div",{class:"cvw-word"},[
+        h("span",{},"concern"),
+        h("span",{},"voor werk")
+      ])
+    ]);
   }
 
   function tile(num, label, color, onClick, active){
