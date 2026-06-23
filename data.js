@@ -17,7 +17,7 @@ window.MONITOR_CONFIG = {
   subtitle: "Concern voor Werk · Opvolging bevindingen accountant",
   kicker: "Monitoring · Voortgangsbewaking",
   peildatum: "2026-06-23",
-  accent: "#0f766e"
+  accent: "#d92b4a"
 };
 
 window.ACTIES = [
