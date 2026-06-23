@@ -28,10 +28,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure Pages
-        # enablement: schakelt GitHub Pages automatisch in (bron = GitHub Actions)
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
