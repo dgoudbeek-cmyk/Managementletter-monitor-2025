@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Actieplan Managementletter 2025 · Monitoring</title>
 <meta name="description" content="Voortgangsbewaking opvolging bevindingen accountant — Concern voor Werk.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#1f2d53">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Fredoka:wght@600;700&family=Open+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,7 +38,12 @@
   .wrap{max-width:1180px;margin:0 auto;padding:0 28px;}
 
   /* Header */
-  header.top{background:var(--header);color:#fff;padding:20px 0 0;}
+  header.top{background:var(--header);color:#fff;padding:20px 0 0;position:relative;overflow:hidden;}
+  /* Decoratief beeldmerk op de achtergrond (huisstijl-asterisks) */
+  .head-deco{position:absolute;pointer-events:none;z-index:0;}
+  .head-deco--1{width:330px;height:330px;top:-120px;right:-90px;opacity:.10;}
+  .head-deco--2{width:150px;height:150px;bottom:-70px;right:170px;opacity:.06;}
+  header.top .wrap{position:relative;z-index:1;}
   /* Concern voor Werk logo (reversed/secundair: wit woordmerk + rood beeldmerk) */
   .brand-row{display:flex;align-items:center;gap:14px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.12);}
   .cvw-logo{display:flex;align-items:center;gap:13px;}
@@ -445,7 +452,9 @@
 
     /* header */
     app.appendChild(
-      h("header",{class:"top"},
+      h("header",{class:"top"},[
+        cvwDeco("head-deco--1", "#d92b4a", 8),
+        cvwDeco("head-deco--2", "#ffffff", 22),
         h("div",{class:"wrap"},[
           h("div",{class:"brand-row"}, cvwLogo()),
           h("div",{class:"head-row"},[
@@ -469,7 +478,7 @@
             ])
           ])
         ])
-      )
+      ])
     );
 
     var main = h("main",{}, h("div",{class:"wrap"}));
@@ -589,20 +598,27 @@
     (kids||[]).forEach(function(c){ if(c) n.appendChild(c); });
     return n;
   }
-  function cvwMark(){
-    // Beeldmerk CvW: 5 dikke, afgeronde 'armen' (open menselijke vorm) die
-    // als organische asterisk vanuit een gevuld centrum naar buiten stralen.
-    // Eén arm ('druppel') wijst omhoog; 5 kopieën op 72°, licht speels gekanteld.
+  // Beeldmerk CvW: 5 dikke, afgeronde 'armen' (open menselijke vorm) die
+  // als organische asterisk vanuit een gevuld centrum naar buiten stralen.
+  // Eén arm ('druppel') wijst omhoog; 5 kopieën op 72°, licht speels gekanteld.
+  function cvwAsterisk(fill, baseRot){
     var arm = "M50 53 C45 38 39 30 39 17 A11 11 0 1 1 61 17 C61 30 55 38 50 53 Z";
-    var g = svgEl("g", { transform:"rotate(13 50 50)" });
+    var g = svgEl("g", { transform:"rotate("+(baseRot==null?13:baseRot)+" 50 50)" });
     for(var i=0;i<5;i++){
       g.appendChild(svgEl("path", {
-        d: arm, fill:"#d92b4a",
+        d: arm, fill:fill,
         transform:"rotate("+(i*72)+" 50 50)"
       }));
     }
+    return g;
+  }
+  function cvwMark(){
     return svgEl("svg", { viewBox:"0 0 100 100", class:"cvw-mark",
-      role:"img", "aria-label":"Concern voor Werk" }, [g]);
+      role:"img", "aria-label":"Concern voor Werk" }, [cvwAsterisk("#d92b4a")]);
+  }
+  function cvwDeco(cls, fill, rot){
+    return svgEl("svg", { viewBox:"0 0 100 100", class:"head-deco "+cls,
+      "aria-hidden":"true", focusable:"false" }, [cvwAsterisk(fill, rot)]);
   }
   function cvwLogo(){
     return h("div",{class:"cvw-logo", title:"Concern voor Werk"},[
