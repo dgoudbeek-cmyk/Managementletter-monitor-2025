@@ -60,7 +60,9 @@
 
   /* Stat tiles */
   .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:16px;}
-  .tile{background:#fff;border:1px solid var(--line);border-radius:6px;padding:15px 17px;border-top:3px solid var(--navy);}
+  .tile{background:#fff;border:1px solid var(--line);border-radius:6px;padding:15px 17px;border-top:3px solid var(--navy);cursor:pointer;transition:box-shadow .15s,transform .1s;}
+  .tile:hover{box-shadow:0 4px 12px rgba(0,0,0,.12);transform:translateY(-1px);}
+  .tile.active{outline:2px solid var(--accent);outline-offset:2px;}
   .tile-num{font-size:32px;font-weight:800;line-height:1;font-family:'Barlow Condensed','Open Sans',sans-serif;}
   .tile-lbl{font-size:12px;font-weight:600;color:var(--muted);margin-top:7px;text-transform:uppercase;letter-spacing:.04em;}
 
@@ -202,7 +204,7 @@
 
   /* ---------- state ---------- */
   var state = {
-    search:"", statusFilter:"alle", prioFilter:"alle",
+    search:"", statusFilter:"alle", overdueFilter:false, prioFilter:"alle",
     sort:"deadline", groupBy:"geen",
     expanded:{}, allOpen:false,
     edit:false,
@@ -393,7 +395,8 @@
     /* filter */
     var q = state.search.trim().toLowerCase();
     var filtered = recs.filter(function(r){
-      if(state.statusFilter!=="alle" && r._status!==state.statusFilter) return false;
+      if(state.overdueFilter && !r._dl.overdue) return false;
+      if(!state.overdueFilter && state.statusFilter!=="alle" && r._status!==state.statusFilter) return false;
       if(state.prioFilter!=="alle" && r.prioriteit!==state.prioFilter) return false;
       if(q){
         var hay = (r.id+" "+r.thema+" "+r.owner+" "+r.bevinding+" "+r.actie+" "+r.bron+" "+r.entiteit+" "+(r.notitie||"")).toLowerCase();
@@ -484,11 +487,11 @@
     /* tiles */
     c.appendChild(
       h("section",{class:"tiles"},[
-        tile(total, "Acties totaal", "#1a2024"),
-        tile(cOpen, "Niet gestart", "#8a949b"),
-        tile(cStart, "Opgestart", "#c4820f"),
-        tile(cDone, "Afgerond", "#1f9d52"),
-        tile(overdue, "Deadline verstreken", "#b42318")
+        tile(total, "Acties totaal", "#1a2024", function(){state.statusFilter="alle";state.overdueFilter=false;render();}, !state.overdueFilter&&state.statusFilter==="alle"),
+        tile(cOpen, "Niet gestart", "#8a949b", function(){state.statusFilter="Open";state.overdueFilter=false;render();}, !state.overdueFilter&&state.statusFilter==="Open"),
+        tile(cStart, "Opgestart", "#c4820f", function(){state.statusFilter="Opgestart";state.overdueFilter=false;render();}, !state.overdueFilter&&state.statusFilter==="Opgestart"),
+        tile(cDone, "Afgerond", "#1f9d52", function(){state.statusFilter="Afgerond";state.overdueFilter=false;render();}, !state.overdueFilter&&state.statusFilter==="Afgerond"),
+        tile(overdue, "Deadline verstreken", "#b42318", function(){state.overdueFilter=!state.overdueFilter;render();}, state.overdueFilter)
       ])
     );
 
@@ -571,8 +574,8 @@
     return n + (n===1?" actie":" acties") + " getoond" + (n!==total ? (" van "+total) : "");
   }
 
-  function tile(num, label, color){
-    return h("div",{class:"tile"},[
+  function tile(num, label, color, onClick, active){
+    return h("div",{class:"tile"+(active?" active":""), onclick:onClick},[
       h("div",{class:"tile-num", style:{color:color}}, String(num)),
       h("div",{class:"tile-lbl"}, label)
     ]);
