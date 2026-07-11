@@ -1,0 +1,55 @@
+// Measures voor de managementrapportage (host-tabel: ReportingBalance).
+// Tekenconventie Exact: debet positief, credit negatief.
+// Opbrengsten (credit, W&V) worden met -1 gedraaid zodat ze positief tonen.
+// Elk blok begint met "// == <naam> | <formatstring>" gevolgd door de DAX-expressie.
+
+// == Omzet | € #,0
+Omzet =
+-1 * CALCULATE (
+    SUM ( ReportingBalance[Amount] ),
+    GLAccounts[BalanceType] = "W",
+    GLAccounts[BalanceSide] = "C"
+)
+
+// == Kosten | € #,0
+Kosten =
+CALCULATE (
+    SUM ( ReportingBalance[Amount] ),
+    GLAccounts[BalanceType] = "W",
+    GLAccounts[BalanceSide] = "D"
+)
+
+// == Resultaat | € #,0
+Resultaat =
+[Omzet] - [Kosten]
+
+// == Resultaatmarge % | 0.0%
+Resultaatmarge % =
+DIVIDE ( [Resultaat], [Omzet] )
+
+// == Totaal activa | € #,0
+Totaal activa =
+CALCULATE (
+    SUM ( ReportingBalance[Amount] ),
+    GLAccounts[BalanceType] = "B",
+    GLAccounts[BalanceSide] = "D"
+)
+
+// == Totaal passiva | € #,0
+Totaal passiva =
+-1 * CALCULATE (
+    SUM ( ReportingBalance[Amount] ),
+    GLAccounts[BalanceType] = "B",
+    GLAccounts[BalanceSide] = "C"
+)
+
+// == Liquide middelen | € #,0
+Liquide middelen =
+CALCULATE (
+    SUM ( ReportingBalance[Amount] ),
+    GLAccounts[Type] IN { 10, 12 }
+)
+
+// == Aantal boekingen | #,0
+Aantal boekingen =
+SUM ( ReportingBalance[Count] )
