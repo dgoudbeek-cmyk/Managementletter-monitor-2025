@@ -48,7 +48,7 @@ def main():
 
     # --- .pbip ---
     write_json(os.path.join(ROOT, NAME + ".pbip"), {
-        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/pbip/definitionProperties/1.0.0/schema.json",
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/pbip/pbipProperties/1.0.0/schema.json",
         "version": "1.0",
         "artifacts": [{"report": {"path": NAME + ".Report"}}],
         "settings": {"enableAutoRecovery": True},
@@ -56,13 +56,18 @@ def main():
 
     # --- SemanticModel ---
     write_json(os.path.join(SM_DIR, ".platform"), platform("SemanticModel", NAME))
-    write_json(os.path.join(SM_DIR, "definition.pbism"), {"version": "4.0", "settings": {}})
+    write_json(os.path.join(SM_DIR, "definition.pbism"), {
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/semanticModel/definitionProperties/1.0.0/schema.json",
+        "version": "1.0",
+        "settings": {},
+    })
     # model.bim = TMSL database-object (UTF-8, geen BOM in PBIP)
     write_json(os.path.join(SM_DIR, "model.bim"), model)
 
     # --- Report ---
     write_json(os.path.join(RP_DIR, ".platform"), platform("Report", NAME))
     write_json(os.path.join(RP_DIR, "definition.pbir"), {
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/1.0.0/schema.json",
         "version": "1.0",
         "datasetReference": {"byPath": {"path": "../" + NAME + ".SemanticModel"}},
     })
