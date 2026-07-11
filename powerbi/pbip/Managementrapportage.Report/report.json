@@ -1,0 +1,158 @@
+{
+  "id": 0,
+  "resourcePackages": [],
+  "sections": [
+    {
+      "name": "ReportSection_overzicht",
+      "displayName": "Managementoverzicht",
+      "filters": "[]",
+      "ordinal": 0,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "config": "{}",
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 12,
+          "z": 0,
+          "width": 700,
+          "height": 44,
+          "config": "{\"name\": \"d6b1158e-c683-4e63-8845-914b96e6a691\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 20, \"y\": 12, \"z\": 0, \"width\": 700, \"height\": 44}}], \"singleVisual\": {\"visualType\": \"textbox\", \"drillFilterOtherVisuals\": true, \"objects\": {\"general\": [{\"properties\": {\"paragraphs\": [{\"textRuns\": [{\"value\": \"Managementrapportage — Concern voor Werk\", \"textStyle\": {\"fontSize\": \"20pt\", \"fontWeight\": \"bold\", \"color\": \"#D92B4A\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 20,
+          "y": 52,
+          "z": 0,
+          "width": 700,
+          "height": 28,
+          "config": "{\"name\": \"9ee38eab-98bb-4295-9162-0118bf2e19d3\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 20, \"y\": 52, \"z\": 0, \"width\": 700, \"height\": 28}}], \"singleVisual\": {\"visualType\": \"textbox\", \"drillFilterOtherVisuals\": true, \"objects\": {\"general\": [{\"properties\": {\"paragraphs\": [{\"textRuns\": [{\"value\": \"Resultaatontwikkeling · Exact Online (live)\", \"textStyle\": {\"fontSize\": \"11pt\", \"fontWeight\": \"normal\", \"color\": \"#333333\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 20,
+          "y": 96,
+          "z": 0,
+          "width": 300,
+          "height": 120,
+          "config": "{\"name\": \"30812b13-7548-4080-b2aa-7475a8750be8\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 20, \"y\": 96, \"z\": 0, \"width\": 300, \"height\": 120}}], \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"ReportingBalance.Omzet\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"r\", \"Entity\": \"ReportingBalance\", \"Type\": 0}], \"Select\": [{\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"r\"}}, \"Property\": \"Omzet\"}, \"Name\": \"ReportingBalance.Omzet\"}]}, \"objects\": {\"labels\": [{\"properties\": {\"color\": [{\"solid\": {\"color\": {\"expr\": {\"Literal\": {\"Value\": \"'#333333'\"}}}}}]}}]}, \"vcObjects\": {\"title\": [{\"properties\": {\"show\": {\"expr\": {\"Literal\": {\"Value\": \"true\"}}}, \"text\": {\"expr\": {\"Literal\": {\"Value\": \"'Omzet'\"}}}}}]}, \"drillFilterOtherVisuals\": true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 330,
+          "y": 96,
+          "z": 0,
+          "width": 300,
+          "height": 120,
+          "config": "{\"name\": \"f75f0c9a-f92e-45e1-965e-9bf0035a9bb9\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 330, \"y\": 96, \"z\": 0, \"width\": 300, \"height\": 120}}], \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"ReportingBalance.Kosten\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"r\", \"Entity\": \"ReportingBalance\", \"Type\": 0}], \"Select\": [{\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"r\"}}, \"Property\": \"Kosten\"}, \"Name\": \"ReportingBalance.Kosten\"}]}, \"objects\": {\"labels\": [{\"properties\": {\"color\": [{\"solid\": {\"color\": {\"expr\": {\"Literal\": {\"Value\": \"'#333333'\"}}}}}]}}]}, \"vcObjects\": {\"title\": [{\"properties\": {\"show\": {\"expr\": {\"Literal\": {\"Value\": \"true\"}}}, \"text\": {\"expr\": {\"Literal\": {\"Value\": \"'Kosten'\"}}}}}]}, \"drillFilterOtherVisuals\": true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 640,
+          "y": 96,
+          "z": 0,
+          "width": 300,
+          "height": 120,
+          "config": "{\"name\": \"84d91ce1-67b1-43e9-8c4a-706817de3785\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 640, \"y\": 96, \"z\": 0, \"width\": 300, \"height\": 120}}], \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"ReportingBalance.Resultaat\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"r\", \"Entity\": \"ReportingBalance\", \"Type\": 0}], \"Select\": [{\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"r\"}}, \"Property\": \"Resultaat\"}, \"Name\": \"ReportingBalance.Resultaat\"}]}, \"objects\": {\"labels\": [{\"properties\": {\"color\": [{\"solid\": {\"color\": {\"expr\": {\"Literal\": {\"Value\": \"'#333333'\"}}}}}]}}]}, \"vcObjects\": {\"title\": [{\"properties\": {\"show\": {\"expr\": {\"Literal\": {\"Value\": \"true\"}}}, \"text\": {\"expr\": {\"Literal\": {\"Value\": \"'Resultaat'\"}}}}}]}, \"drillFilterOtherVisuals\": true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 950,
+          "y": 96,
+          "z": 0,
+          "width": 310,
+          "height": 120,
+          "config": "{\"name\": \"f1260cbd-9fe3-4ca5-8e3d-b8f3fea0af7c\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 950, \"y\": 96, \"z\": 0, \"width\": 310, \"height\": 120}}], \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"ReportingBalance.Resultaatmarge %\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"r\", \"Entity\": \"ReportingBalance\", \"Type\": 0}], \"Select\": [{\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"r\"}}, \"Property\": \"Resultaatmarge %\"}, \"Name\": \"ReportingBalance.Resultaatmarge %\"}]}, \"objects\": {\"labels\": [{\"properties\": {\"color\": [{\"solid\": {\"color\": {\"expr\": {\"Literal\": {\"Value\": \"'#333333'\"}}}}}]}}]}, \"vcObjects\": {\"title\": [{\"properties\": {\"show\": {\"expr\": {\"Literal\": {\"Value\": \"true\"}}}, \"text\": {\"expr\": {\"Literal\": {\"Value\": \"'Resultaatmarge'\"}}}}}]}, \"drillFilterOtherVisuals\": true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 20,
+          "y": 232,
+          "z": 0,
+          "width": 620,
+          "height": 460,
+          "config": "{\"name\": \"fb6eea2f-d477-4843-b6be-775f1a963f66\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 20, \"y\": 232, \"z\": 0, \"width\": 620, \"height\": 460}}], \"singleVisual\": {\"visualType\": \"clusteredColumnChart\", \"projections\": {\"Category\": [{\"queryRef\": \"Perioden.PeriodeLabel\"}], \"Y\": [{\"queryRef\": \"ReportingBalance.Resultaat\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"c\", \"Entity\": \"Perioden\", \"Type\": 0}, {\"Name\": \"v\", \"Entity\": \"ReportingBalance\", \"Type\": 0}], \"Select\": [{\"Column\": {\"Expression\": {\"SourceRef\": {\"Source\": \"c\"}}, \"Property\": \"PeriodeLabel\"}, \"Name\": \"Perioden.PeriodeLabel\"}, {\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"v\"}}, \"Property\": \"Resultaat\"}, \"Name\": \"ReportingBalance.Resultaat\"}], \"OrderBy\": [{\"Direction\": 1, \"Expression\": {\"Column\": {\"Expression\": {\"SourceRef\": {\"Source\": \"c\"}}, \"Property\": \"PeriodeLabel\"}}}]}, \"vcObjects\": {\"title\": [{\"properties\": {\"show\": {\"expr\": {\"Literal\": {\"Value\": \"true\"}}}, \"text\": {\"expr\": {\"Literal\": {\"Value\": \"'Resultaat per periode'\"}}}}}]}, \"drillFilterOtherVisuals\": true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 660,
+          "y": 232,
+          "z": 0,
+          "width": 600,
+          "height": 460,
+          "config": "{\"name\": \"c0d3ac88-b07a-482e-b9db-f10ef6280784\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 660, \"y\": 232, \"z\": 0, \"width\": 600, \"height\": 460}}], \"singleVisual\": {\"visualType\": \"pivotTable\", \"projections\": {\"Rows\": [{\"queryRef\": \"GLAccounts.TypeDescription\"}], \"Values\": [{\"queryRef\": \"ReportingBalance.Omzet\"}, {\"queryRef\": \"ReportingBalance.Kosten\"}, {\"queryRef\": \"ReportingBalance.Resultaat\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"g\", \"Entity\": \"GLAccounts\", \"Type\": 0}, {\"Name\": \"v\", \"Entity\": \"ReportingBalance\", \"Type\": 0}], \"Select\": [{\"Column\": {\"Expression\": {\"SourceRef\": {\"Source\": \"g\"}}, \"Property\": \"TypeDescription\"}, \"Name\": \"GLAccounts.TypeDescription\"}, {\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"v\"}}, \"Property\": \"Omzet\"}, \"Name\": \"ReportingBalance.Omzet\"}, {\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"v\"}}, \"Property\": \"Kosten\"}, \"Name\": \"ReportingBalance.Kosten\"}, {\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"v\"}}, \"Property\": \"Resultaat\"}, \"Name\": \"ReportingBalance.Resultaat\"}]}, \"vcObjects\": {\"title\": [{\"properties\": {\"show\": {\"expr\": {\"Literal\": {\"Value\": \"true\"}}}, \"text\": {\"expr\": {\"Literal\": {\"Value\": \"'Resultaat per grootboekcategorie'\"}}}}}]}, \"drillFilterOtherVisuals\": true}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "ReportSection_balans",
+      "displayName": "Balans & liquiditeit",
+      "filters": "[]",
+      "ordinal": 1,
+      "width": 1280,
+      "height": 720,
+      "displayOption": 1,
+      "config": "{}",
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 12,
+          "z": 0,
+          "width": 700,
+          "height": 44,
+          "config": "{\"name\": \"9c2b793b-9689-4b2e-b112-0a3862e6fb1a\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 20, \"y\": 12, \"z\": 0, \"width\": 700, \"height\": 44}}], \"singleVisual\": {\"visualType\": \"textbox\", \"drillFilterOtherVisuals\": true, \"objects\": {\"general\": [{\"properties\": {\"paragraphs\": [{\"textRuns\": [{\"value\": \"Balans & liquiditeit\", \"textStyle\": {\"fontSize\": \"20pt\", \"fontWeight\": \"bold\", \"color\": \"#D92B4A\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 20,
+          "y": 80,
+          "z": 0,
+          "width": 300,
+          "height": 120,
+          "config": "{\"name\": \"f2b7b698-8468-49ca-b7a5-c643ae24f221\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 20, \"y\": 80, \"z\": 0, \"width\": 300, \"height\": 120}}], \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"ReportingBalance.Totaal activa\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"r\", \"Entity\": \"ReportingBalance\", \"Type\": 0}], \"Select\": [{\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"r\"}}, \"Property\": \"Totaal activa\"}, \"Name\": \"ReportingBalance.Totaal activa\"}]}, \"objects\": {\"labels\": [{\"properties\": {\"color\": [{\"solid\": {\"color\": {\"expr\": {\"Literal\": {\"Value\": \"'#333333'\"}}}}}]}}]}, \"vcObjects\": {\"title\": [{\"properties\": {\"show\": {\"expr\": {\"Literal\": {\"Value\": \"true\"}}}, \"text\": {\"expr\": {\"Literal\": {\"Value\": \"'Totaal activa'\"}}}}}]}, \"drillFilterOtherVisuals\": true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 330,
+          "y": 80,
+          "z": 0,
+          "width": 300,
+          "height": 120,
+          "config": "{\"name\": \"90acc5a5-e14d-4163-96a0-4360dce01d9d\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 330, \"y\": 80, \"z\": 0, \"width\": 300, \"height\": 120}}], \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"ReportingBalance.Totaal passiva\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"r\", \"Entity\": \"ReportingBalance\", \"Type\": 0}], \"Select\": [{\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"r\"}}, \"Property\": \"Totaal passiva\"}, \"Name\": \"ReportingBalance.Totaal passiva\"}]}, \"objects\": {\"labels\": [{\"properties\": {\"color\": [{\"solid\": {\"color\": {\"expr\": {\"Literal\": {\"Value\": \"'#333333'\"}}}}}]}}]}, \"vcObjects\": {\"title\": [{\"properties\": {\"show\": {\"expr\": {\"Literal\": {\"Value\": \"true\"}}}, \"text\": {\"expr\": {\"Literal\": {\"Value\": \"'Totaal passiva'\"}}}}}]}, \"drillFilterOtherVisuals\": true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 640,
+          "y": 80,
+          "z": 0,
+          "width": 300,
+          "height": 120,
+          "config": "{\"name\": \"aa16ed7b-7e89-46a0-9dc7-aec260d4b493\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 640, \"y\": 80, \"z\": 0, \"width\": 300, \"height\": 120}}], \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"ReportingBalance.Liquide middelen\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"r\", \"Entity\": \"ReportingBalance\", \"Type\": 0}], \"Select\": [{\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"r\"}}, \"Property\": \"Liquide middelen\"}, \"Name\": \"ReportingBalance.Liquide middelen\"}]}, \"objects\": {\"labels\": [{\"properties\": {\"color\": [{\"solid\": {\"color\": {\"expr\": {\"Literal\": {\"Value\": \"'#333333'\"}}}}}]}}]}, \"vcObjects\": {\"title\": [{\"properties\": {\"show\": {\"expr\": {\"Literal\": {\"Value\": \"true\"}}}, \"text\": {\"expr\": {\"Literal\": {\"Value\": \"'Liquide middelen'\"}}}}}]}, \"drillFilterOtherVisuals\": true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 950,
+          "y": 80,
+          "z": 0,
+          "width": 310,
+          "height": 120,
+          "config": "{\"name\": \"b3de9895-c1fd-4d5b-a452-86a9d1f9255d\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 950, \"y\": 80, \"z\": 0, \"width\": 310, \"height\": 120}}], \"singleVisual\": {\"visualType\": \"card\", \"projections\": {\"Values\": [{\"queryRef\": \"ReportingBalance.Aantal boekingen\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"r\", \"Entity\": \"ReportingBalance\", \"Type\": 0}], \"Select\": [{\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"r\"}}, \"Property\": \"Aantal boekingen\"}, \"Name\": \"ReportingBalance.Aantal boekingen\"}]}, \"objects\": {\"labels\": [{\"properties\": {\"color\": [{\"solid\": {\"color\": {\"expr\": {\"Literal\": {\"Value\": \"'#333333'\"}}}}}]}}]}, \"vcObjects\": {\"title\": [{\"properties\": {\"show\": {\"expr\": {\"Literal\": {\"Value\": \"true\"}}}, \"text\": {\"expr\": {\"Literal\": {\"Value\": \"'Aantal boekingen'\"}}}}}]}, \"drillFilterOtherVisuals\": true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 20,
+          "y": 216,
+          "z": 0,
+          "width": 1240,
+          "height": 476,
+          "config": "{\"name\": \"30157830-7581-421e-a7bc-9f732a8533e4\", \"layouts\": [{\"id\": 0, \"position\": {\"x\": 20, \"y\": 216, \"z\": 0, \"width\": 1240, \"height\": 476}}], \"singleVisual\": {\"visualType\": \"pivotTable\", \"projections\": {\"Rows\": [{\"queryRef\": \"GLAccounts.Description\"}], \"Values\": [{\"queryRef\": \"ReportingBalance.Totaal activa\"}, {\"queryRef\": \"ReportingBalance.Totaal passiva\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"g\", \"Entity\": \"GLAccounts\", \"Type\": 0}, {\"Name\": \"v\", \"Entity\": \"ReportingBalance\", \"Type\": 0}], \"Select\": [{\"Column\": {\"Expression\": {\"SourceRef\": {\"Source\": \"g\"}}, \"Property\": \"Description\"}, \"Name\": \"GLAccounts.Description\"}, {\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"v\"}}, \"Property\": \"Totaal activa\"}, \"Name\": \"ReportingBalance.Totaal activa\"}, {\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"v\"}}, \"Property\": \"Totaal passiva\"}, \"Name\": \"ReportingBalance.Totaal passiva\"}]}, \"vcObjects\": {\"title\": [{\"properties\": {\"show\": {\"expr\": {\"Literal\": {\"Value\": \"true\"}}}, \"text\": {\"expr\": {\"Literal\": {\"Value\": \"'Balansposten per grootboekrekening'\"}}}}}]}, \"drillFilterOtherVisuals\": true}}",
+          "filters": "[]"
+        }
+      ]
+    }
+  ],
+  "config": "{\"version\": \"5.43\", \"themeCollection\": {\"baseTheme\": {\"name\": \"CY24SU10\"}}, \"activeSectionIndex\": 0, \"defaultDrillFilterOtherVisuals\": true, \"settings\": {\"useStylableVisualContainerHeader\": true}}",
+  "layoutOptimization": 0
+}

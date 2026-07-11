@@ -1,0 +1,304 @@
+{
+  "name": "c5159de4-a0c5-425d-94e6-c975d6a8fabd",
+  "compatibilityLevel": 1567,
+  "model": {
+    "culture": "nl-NL",
+    "dataAccessOptions": {
+      "legacyRedirects": true,
+      "returnErrorValuesAsNull": true
+    },
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "sourceQueryCulture": "nl-NL",
+    "tables": [
+      {
+        "name": "GLAccounts",
+        "columns": [
+          {
+            "name": "ID",
+            "dataType": "string",
+            "sourceColumn": "ID",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "Code",
+            "dataType": "string",
+            "sourceColumn": "Code",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Description",
+            "dataType": "string",
+            "sourceColumn": "Description",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "BalanceSide",
+            "dataType": "string",
+            "sourceColumn": "BalanceSide",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "BalanceType",
+            "dataType": "string",
+            "sourceColumn": "BalanceType",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Type",
+            "dataType": "int64",
+            "sourceColumn": "Type",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "TypeDescription",
+            "dataType": "string",
+            "sourceColumn": "TypeDescription",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "GLAccounts",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "// Grootboekrekeningen (dimensie) uit Exact Online via Invantive Bridge Online.\n// Verbinding loopt via de OData-feed van Invantive Bridge Online (parameter BridgeUrl).\n// Als jouw Bridge de administratie al afbakent, mag je de \"Administratie\"-stap weglaten.\nlet\n    Bron          = OData.Feed(BridgeUrl, null, [Implementation = \"2.0\"]),\n    GLAccounts    = Bron{[Name = \"GLAccounts\"]}[Data],\n    Administratie = Table.SelectRows(GLAccounts, each [Division] = Number.FromText(Division)),\n    Selectie      = Table.SelectColumns(\n        Administratie,\n        {\"ID\", \"Code\", \"Description\", \"BalanceSide\", \"BalanceType\", \"Type\", \"TypeDescription\"}\n    ),\n    Types = Table.TransformColumnTypes(\n        Selectie,\n        {\n            {\"Code\", type text},\n            {\"Description\", type text},\n            {\"BalanceSide\", type text},       // \"D\" = debet, \"C\" = credit\n            {\"BalanceType\", type text},       // \"B\" = balans, \"W\" = winst & verlies\n            {\"Type\", Int64.Type},             // Exact-classificatie (10 = kas, 12 = bank, ...)\n            {\"TypeDescription\", type text}\n        }\n    )\nin\n    Types"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ]
+      },
+      {
+        "name": "Perioden",
+        "columns": [
+          {
+            "name": "Boekjaar",
+            "dataType": "int64",
+            "sourceColumn": "Boekjaar",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Periode",
+            "dataType": "int64",
+            "sourceColumn": "Periode",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "PeriodeKey",
+            "dataType": "int64",
+            "sourceColumn": "PeriodeKey",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "PeriodeLabel",
+            "dataType": "string",
+            "sourceColumn": "PeriodeLabel",
+            "summarizeBy": "none",
+            "sortByColumn": "SorteerKey"
+          },
+          {
+            "name": "SorteerKey",
+            "dataType": "int64",
+            "sourceColumn": "SorteerKey",
+            "summarizeBy": "none",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Perioden",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "// Perioden-dimensie (boekjaar + periode). Volledig in Power Query gegenereerd,\n// zodat er geen extra bron nodig is. Pas het bereik \"Jaren\" desgewenst aan.\nlet\n    Jaren    = {2023 .. 2028},\n    Perioden = {0 .. 15},                 // 0 = beginbalans, 1-12 = maanden, 13-15 = jaarafsluiting\n    Kruis    = List.Combine(\n        List.Transform(Jaren, (j) => List.Transform(Perioden, (p) => [Boekjaar = j, Periode = p]))\n    ),\n    Tabel    = Table.FromRecords(Kruis),\n    MetKey   = Table.AddColumn(Tabel, \"PeriodeKey\", each [Boekjaar] * 100 + [Periode], Int64.Type),\n    MetLabel = Table.AddColumn(\n        MetKey,\n        \"PeriodeLabel\",\n        each Text.From([Boekjaar]) & \"-P\" & Text.PadStart(Text.From([Periode]), 2, \"0\"),\n        type text\n    ),\n    Sorteer  = Table.AddColumn(MetLabel, \"SorteerKey\", each [PeriodeKey], Int64.Type),\n    Types    = Table.TransformColumnTypes(Sorteer, {{\"Boekjaar\", Int64.Type}, {\"Periode\", Int64.Type}})\nin\n    Types"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ]
+      },
+      {
+        "name": "ReportingBalance",
+        "columns": [
+          {
+            "name": "Division",
+            "dataType": "int64",
+            "sourceColumn": "Division",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "GLAccountCode",
+            "dataType": "string",
+            "sourceColumn": "GLAccountCode",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "ReportingYear",
+            "dataType": "int64",
+            "sourceColumn": "ReportingYear",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "ReportingPeriod",
+            "dataType": "int64",
+            "sourceColumn": "ReportingPeriod",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Amount",
+            "dataType": "double",
+            "sourceColumn": "Amount",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "Count",
+            "dataType": "int64",
+            "sourceColumn": "Count",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "PeriodeKey",
+            "dataType": "int64",
+            "sourceColumn": "PeriodeKey",
+            "summarizeBy": "none",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "name": "ReportingBalance",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "// Grootboeksaldi per periode (feit) uit Exact Online via Invantive Bridge Online.\n// ReportingBalance is voorgeaggregeerd (saldo per rekening/jaar/periode) en daardoor\n// veel lichter dan TransactionLines — ideaal voor een management-dashboard.\nlet\n    Bron          = OData.Feed(BridgeUrl, null, [Implementation = \"2.0\"]),\n    RB            = Bron{[Name = \"ReportingBalance\"]}[Data],\n    Administratie = Table.SelectRows(RB, each [Division] = Number.FromText(Division)),\n    Selectie      = Table.SelectColumns(\n        Administratie,\n        {\"Division\", \"GLAccountCode\", \"ReportingYear\", \"ReportingPeriod\", \"Amount\", \"Count\"}\n    ),\n    Types = Table.TransformColumnTypes(\n        Selectie,\n        {\n            {\"Division\", Int64.Type},\n            {\"GLAccountCode\", type text},\n            {\"ReportingYear\", Int64.Type},\n            {\"ReportingPeriod\", Int64.Type},  // 0 = beginbalans, 1-12 = maanden, 13-15 = jaarafsluiting\n            {\"Amount\", type number},          // debet positief, credit negatief (Exact-conventie)\n            {\"Count\", Int64.Type}\n        }\n    ),\n    // Koppelsleutel naar de Perioden-dimensie\n    MetKey = Table.AddColumn(Types, \"PeriodeKey\", each [ReportingYear] * 100 + [ReportingPeriod], Int64.Type)\nin\n    MetKey"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Omzet",
+            "expression": "-1 * CALCULATE (\n    SUM ( ReportingBalance[Amount] ),\n    GLAccounts[BalanceType] = \"W\",\n    GLAccounts[BalanceSide] = \"C\"\n)",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Kosten",
+            "expression": "CALCULATE (\n    SUM ( ReportingBalance[Amount] ),\n    GLAccounts[BalanceType] = \"W\",\n    GLAccounts[BalanceSide] = \"D\"\n)",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Resultaat",
+            "expression": "[Omzet] - [Kosten]",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Resultaatmarge %",
+            "expression": "DIVIDE ( [Resultaat], [Omzet] )",
+            "formatString": "0.0%"
+          },
+          {
+            "name": "Totaal activa",
+            "expression": "CALCULATE (\n    SUM ( ReportingBalance[Amount] ),\n    GLAccounts[BalanceType] = \"B\",\n    GLAccounts[BalanceSide] = \"D\"\n)",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Totaal passiva",
+            "expression": "-1 * CALCULATE (\n    SUM ( ReportingBalance[Amount] ),\n    GLAccounts[BalanceType] = \"B\",\n    GLAccounts[BalanceSide] = \"C\"\n)",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Liquide middelen",
+            "expression": "CALCULATE (\n    SUM ( ReportingBalance[Amount] ),\n    GLAccounts[Type] IN { 10, 12 }\n)",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Aantal boekingen",
+            "expression": "SUM ( ReportingBalance[Count] )",
+            "formatString": "#,0"
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "05e68e57-dad8-49eb-a737-d101529ba94c",
+        "fromTable": "ReportingBalance",
+        "fromColumn": "GLAccountCode",
+        "toTable": "GLAccounts",
+        "toColumn": "Code",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "1f736b64-7926-4da5-b65c-e2a1025d61b1",
+        "fromTable": "ReportingBalance",
+        "fromColumn": "PeriodeKey",
+        "toTable": "Perioden",
+        "toColumn": "PeriodeKey",
+        "crossFilteringBehavior": "oneDirection"
+      }
+    ],
+    "expressions": [
+      {
+        "name": "BridgeUrl",
+        "kind": "m",
+        "expression": "\"https://bridge-online.cloud/uwbedrijf\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
+        "annotations": [
+          {
+            "name": "PBI_NavigationStepName",
+            "value": "Navigation"
+          },
+          {
+            "name": "PBI_ResultType",
+            "value": "Text"
+          }
+        ]
+      },
+      {
+        "name": "Division",
+        "kind": "m",
+        "expression": "\"3000000\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
+        "annotations": [
+          {
+            "name": "PBI_NavigationStepName",
+            "value": "Navigation"
+          },
+          {
+            "name": "PBI_ResultType",
+            "value": "Text"
+          }
+        ]
+      }
+    ],
+    "annotations": [
+      {
+        "name": "PBI_QueryOrder",
+        "value": "[\"BridgeUrl\", \"Division\", \"GLAccounts\", \"ReportingBalance\", \"Perioden\"]"
+      },
+      {
+        "name": "__PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      },
+      {
+        "name": "PBIDesktopVersion",
+        "value": "2.130.0.0"
+      }
+    ]
+  }
+}

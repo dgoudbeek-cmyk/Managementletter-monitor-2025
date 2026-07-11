@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Bouwt een Power BI-template (.pbit) voor de financiele managementrapportage van
-Concern voor Werk, gevoed vanuit Exact Online (Premium) via Invantive Bridge Online.
+Model- en rapportdefinitie voor de financiele managementrapportage van Concern
+voor Werk, gevoed vanuit Exact Online (Premium) via Invantive Bridge Online.
 
-Het script stelt een geldig OPC/ZIP-pakket samen met de vier kernonderdelen:
+LET OP: dit script is primair de bron van build_model() en build_layout(), die
+door build_pbip.py worden hergebruikt. De .pbit die main() wegschrijft mist het
+binaire DataMashup-onderdeel dat Power BI Desktop verplicht stelt; Power BI opent
+zo'n bestand niet ("versleuteld of beschadigd"). Gebruik daarom build_pbip.py
+(PBIP-project) of de plak-methode uit README.md. Dit script blijft behouden als
+enige bron van waarheid voor het model en de rapport-layout.
+
+Het script stelt een OPC/ZIP-pakket samen met de vier kernonderdelen:
   - [Content_Types].xml   (UTF-8)
   - Version               (UTF-16 LE)
   - DataModelSchema       (UTF-16 LE)  -> tabellen, M-queries, relaties, measures
