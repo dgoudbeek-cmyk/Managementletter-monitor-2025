@@ -85,13 +85,6 @@ PER_M = m_query("Perioden")
 MEASURES = parse_measures(read(os.path.join(SRC, "measures.dax")))
 
 
-# ---------------------------------------------------------------------------
-# Parameters (worden bij openen van het template opgevraagd)
-# ---------------------------------------------------------------------------
-PARAM_BRIDGE_DEFAULT = "https://bridge-online.cloud/uwbedrijf"
-PARAM_DIVISION_DEFAULT = "3000000"
-
-
 def col(name, dtype, summarize="none", sort_by=None, hidden=False):
     c = {"name": name, "dataType": dtype, "sourceColumn": name, "summarizeBy": summarize}
     if sort_by:
@@ -110,12 +103,13 @@ def build_model():
             "name": "GLAccounts",
             "columns": [
                 col("ID", "string", hidden=True),
-                col("Code", "string"),
+                col("Division", "int64"),
+                col("SearchCode", "string"),
                 col("Description", "string"),
-                col("BalanceSide", "string"),
                 col("BalanceType", "string"),
+                col("BalanceSide", "string"),
                 col("Type", "int64"),
-                col("TypeDescription", "string"),
+                col("Categorie", "string"),
             ],
             "partitions": [{
                 "name": "GLAccounts",
@@ -143,8 +137,8 @@ def build_model():
         {
             "name": "ReportingBalance",
             "columns": [
-                col("Division", "int64", hidden=True),
-                col("GLAccountCode", "string"),
+                col("Division", "int64"),
+                col("GLAccount", "string", hidden=True),
                 col("ReportingYear", "int64"),
                 col("ReportingPeriod", "int64"),
                 col("Amount", "double", summarize="sum"),
@@ -167,8 +161,8 @@ def build_model():
     relationships = [
         {
             "name": str(uuid.uuid4()),
-            "fromTable": "ReportingBalance", "fromColumn": "GLAccountCode",
-            "toTable": "GLAccounts", "toColumn": "Code",
+            "fromTable": "ReportingBalance", "fromColumn": "GLAccount",
+            "toTable": "GLAccounts", "toColumn": "ID",
             "crossFilteringBehavior": "oneDirection",
         },
         {
@@ -179,25 +173,8 @@ def build_model():
         },
     ]
 
-    expressions = [
-        {
-            "name": "BridgeUrl",
-            "kind": "m",
-            "expression": ('"%s" meta [IsParameterQuery=true, Type="Text", '
-                           "IsParameterQueryRequired=true]" % PARAM_BRIDGE_DEFAULT),
-            "annotations": [{"name": "PBI_NavigationStepName", "value": "Navigation"},
-                            {"name": "PBI_ResultType", "value": "Text"}],
-        },
-        {
-            "name": "Division",
-            "kind": "m",
-            "expression": ('"%s" meta [IsParameterQuery=true, Type="Text", '
-                           "IsParameterQueryRequired=true]" % PARAM_DIVISION_DEFAULT),
-            "annotations": [{"name": "PBI_NavigationStepName", "value": "Navigation"},
-                            {"name": "PBI_ResultType", "value": "Text"}],
-        },
-    ]
-
+    # De Exact Online Premium-connector heeft geen parameters nodig
+    # (ExactOnlinePremium.Contents() regelt bron en authenticatie zelf).
     model = {
         "culture": "nl-NL",
         "dataAccessOptions": {"legacyRedirects": True, "returnErrorValuesAsNull": True},
@@ -205,11 +182,9 @@ def build_model():
         "sourceQueryCulture": "nl-NL",
         "tables": tables,
         "relationships": relationships,
-        "expressions": expressions,
         "annotations": [
             {"name": "PBI_QueryOrder",
-             "value": json.dumps(["BridgeUrl", "Division", "GLAccounts",
-                                  "ReportingBalance", "Perioden"])},
+             "value": json.dumps(["GLAccounts", "ReportingBalance", "Perioden"])},
             {"name": "__PBI_TimeIntelligenceEnabled", "value": "0"},
             {"name": "PBIDesktopVersion", "value": "2.130.0.0"},
         ],
@@ -348,6 +323,34 @@ def matrix(x, y, w, h, row_table, row_col, val_table, measures, title):
             "config": cfg(conf), "filters": "[]"}
 
 
+def slicer(x, y, w, h, table, column, title):
+    name = str(uuid.uuid4())
+    ref = "%s.%s" % (table, column)
+    conf = {
+        "name": name,
+        "layouts": [{"id": 0, "position": {"x": x, "y": y, "z": 0, "width": w, "height": h}}],
+        "singleVisual": {
+            "visualType": "slicer",
+            "projections": {"Values": [{"queryRef": ref}]},
+            "prototypeQuery": {
+                "Version": 2,
+                "From": [{"Name": "s", "Entity": table, "Type": 0}],
+                "Select": [{
+                    "Column": {"Expression": {"SourceRef": {"Source": "s"}}, "Property": column},
+                    "Name": ref,
+                }],
+            },
+            "vcObjects": {"title": [{"properties": {
+                "show": {"expr": {"Literal": {"Value": "true"}}},
+                "text": {"expr": {"Literal": {"Value": "'%s'" % title.replace("'", "")}}},
+            }}]},
+            "drillFilterOtherVisuals": True,
+        },
+    }
+    return {"x": x, "y": y, "z": 0, "width": w, "height": h,
+            "config": cfg(conf), "filters": "[]"}
+
+
 def build_layout():
     # Pagina 1 — Managementoverzicht (W&V)
     page1 = {
@@ -360,15 +363,16 @@ def build_layout():
         "displayOption": 1,
         "config": cfg({}),
         "visualContainers": [
-            textbox(20, 12, 700, 44, "Managementrapportage — Concern voor Werk"),
-            textbox(20, 52, 700, 28, "Resultaatontwikkeling · Exact Online (live)", size="11pt", bold=False),
+            textbox(20, 12, 620, 44, "Managementrapportage — Concern voor Werk"),
+            textbox(20, 52, 620, 28, "Resultaatontwikkeling · Exact Online Premium (live)", size="11pt", bold=False),
+            slicer(980, 12, 280, 72, "ReportingBalance", "Division", "Administratie"),
             card(20, 96, 300, 120, "ReportingBalance", "Omzet", "Omzet"),
             card(330, 96, 300, 120, "ReportingBalance", "Kosten", "Kosten"),
             card(640, 96, 300, 120, "ReportingBalance", "Resultaat", "Resultaat"),
             card(950, 96, 310, 120, "ReportingBalance", "Resultaatmarge %", "Resultaatmarge"),
             column_chart(20, 232, 620, 460, "Perioden", "PeriodeLabel",
                          "ReportingBalance", "Resultaat", "Resultaat per periode"),
-            matrix(660, 232, 600, 460, "GLAccounts", "TypeDescription",
+            matrix(660, 232, 600, 460, "GLAccounts", "Categorie",
                    "ReportingBalance", ["Omzet", "Kosten", "Resultaat"],
                    "Resultaat per grootboekcategorie"),
         ],

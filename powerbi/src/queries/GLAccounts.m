@@ -1,24 +1,36 @@
-// Grootboekrekeningen (dimensie) uit Exact Online via Invantive Bridge Online.
-// Verbinding loopt via de OData-feed van Invantive Bridge Online (parameter BridgeUrl).
-// Als jouw Bridge de administratie al afbakent, mag je de "Administratie"-stap weglaten.
+// Grootboekrekeningen (dimensie) uit Exact Online Premium.
+// Verbinding via de Exact Online Premium-connector: ExactOnlinePremium.Contents().
+// In Premium staat het rekeningnummer in SearchCode; de koppelsleutel is ID (GUID).
 let
-    Bron          = OData.Feed(BridgeUrl, null, [Implementation = "2.0"]),
-    GLAccounts    = Bron{[Name = "GLAccounts"]}[Data],
-    Administratie = Table.SelectRows(GLAccounts, each [Division] = Number.FromText(Division)),
-    Selectie      = Table.SelectColumns(
-        Administratie,
-        {"ID", "Code", "Description", "BalanceSide", "BalanceType", "Type", "TypeDescription"}
+    Bron       = ExactOnlinePremium.Contents(),
+    dbo        = Bron{[Name = "dbo", Kind = "Schema"]}[Data],
+    GLAccounts = dbo{[Name = "GLAccounts", Kind = "Table"]}[Data],
+    Selectie   = Table.SelectColumns(
+        GLAccounts,
+        {"ID", "Division", "SearchCode", "Description", "BalanceType", "BalanceSide", "Type"}
     ),
     Types = Table.TransformColumnTypes(
         Selectie,
         {
-            {"Code", type text},
+            {"ID", type text},
+            {"Division", Int64.Type},
+            {"SearchCode", type text},        // rekeningnummer
             {"Description", type text},
-            {"BalanceSide", type text},       // "D" = debet, "C" = credit
             {"BalanceType", type text},       // "B" = balans, "W" = winst & verlies
-            {"Type", Int64.Type},             // Exact-classificatie (10 = kas, 12 = bank, ...)
-            {"TypeDescription", type text}
+            {"BalanceSide", type text},       // "D" = debet, "C" = credit
+            {"Type", Int64.Type}              // Exact-classificatie (10 = kas, 12 = bank, ...)
         }
+    ),
+    // Afgeleide categorie voor rapportage (Premium heeft geen TypeDescription-kolom)
+    Categorie = Table.AddColumn(
+        Types,
+        "Categorie",
+        each
+            if [BalanceType] = "W" and [BalanceSide] = "C" then "Opbrengsten"
+            else if [BalanceType] = "W" then "Kosten"
+            else if [BalanceType] = "B" and [BalanceSide] = "D" then "Activa"
+            else "Passiva",
+        type text
     )
 in
-    Types
+    Categorie
