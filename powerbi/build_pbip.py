@@ -64,10 +64,10 @@ def main():
     # model.bim = TMSL database-object (UTF-8, geen BOM in PBIP)
     write_json(os.path.join(SM_DIR, "model.bim"), model)
 
-    # --- Report ---
+    # --- Report (klassiek report.json-formaat; GEEN $schema in definition.pbir,
+    #     anders verwacht Power BI het nieuwe PBIR-mapformaat met losse artifacts) ---
     write_json(os.path.join(RP_DIR, ".platform"), platform("Report", NAME))
     write_json(os.path.join(RP_DIR, "definition.pbir"), {
-        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/1.0.0/schema.json",
         "version": "1.0",
         "datasetReference": {"byPath": {"path": "../" + NAME + ".SemanticModel"}},
     })

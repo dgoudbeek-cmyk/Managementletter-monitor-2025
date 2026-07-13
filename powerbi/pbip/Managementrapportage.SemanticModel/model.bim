@@ -1,5 +1,5 @@
 {
-  "name": "34b50428-58fd-447b-a3fb-54a83aa177d2",
+  "name": "f875a9c6-ec60-4cf2-a4bf-3e3cfcea955c",
   "compatibilityLevel": 1567,
   "model": {
     "culture": "nl-NL",
@@ -244,7 +244,7 @@
     ],
     "relationships": [
       {
-        "name": "3841cf7e-eaf5-463e-a462-c0290b89b5e5",
+        "name": "c0ce7b1e-f589-44f1-9009-e0d09cee0cb9",
         "fromTable": "ReportingBalance",
         "fromColumn": "GLAccount",
         "toTable": "GLAccounts",
@@ -252,7 +252,7 @@
         "crossFilteringBehavior": "oneDirection"
       },
       {
-        "name": "a03027a7-fee5-4c05-9205-26ccf9e76c33",
+        "name": "82f224e4-3572-4bdf-80c4-1cbbac75bc0d",
         "fromTable": "ReportingBalance",
         "fromColumn": "PeriodeKey",
         "toTable": "Perioden",
