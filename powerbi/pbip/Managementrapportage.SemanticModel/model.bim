@@ -1,5 +1,5 @@
 {
-  "name": "f875a9c6-ec60-4cf2-a4bf-3e3cfcea955c",
+  "name": "3fab2518-9aea-4a26-aadf-bed71e940c51",
   "compatibilityLevel": 1567,
   "model": {
     "culture": "nl-NL",
@@ -69,7 +69,7 @@
             "mode": "import",
             "source": {
               "type": "m",
-              "expression": "// Grootboekrekeningen (dimensie) uit Exact Online Premium.\n// Verbinding via de Exact Online Premium-connector: ExactOnlinePremium.Contents().\n// In Premium staat het rekeningnummer in SearchCode; de koppelsleutel is ID (GUID).\nlet\n    Bron       = ExactOnlinePremium.Contents(),\n    dbo        = Bron{[Name = \"dbo\", Kind = \"Schema\"]}[Data],\n    GLAccounts = dbo{[Name = \"GLAccounts\", Kind = \"Table\"]}[Data],\n    Selectie   = Table.SelectColumns(\n        GLAccounts,\n        {\"ID\", \"Division\", \"SearchCode\", \"Description\", \"BalanceType\", \"BalanceSide\", \"Type\"}\n    ),\n    Types = Table.TransformColumnTypes(\n        Selectie,\n        {\n            {\"ID\", type text},\n            {\"Division\", Int64.Type},\n            {\"SearchCode\", type text},        // rekeningnummer\n            {\"Description\", type text},\n            {\"BalanceType\", type text},       // \"B\" = balans, \"W\" = winst & verlies\n            {\"BalanceSide\", type text},       // \"D\" = debet, \"C\" = credit\n            {\"Type\", Int64.Type}              // Exact-classificatie (10 = kas, 12 = bank, ...)\n        }\n    ),\n    // Afgeleide categorie voor rapportage (Premium heeft geen TypeDescription-kolom)\n    Categorie = Table.AddColumn(\n        Types,\n        \"Categorie\",\n        each\n            if [BalanceType] = \"W\" and [BalanceSide] = \"C\" then \"Opbrengsten\"\n            else if [BalanceType] = \"W\" then \"Kosten\"\n            else if [BalanceType] = \"B\" and [BalanceSide] = \"D\" then \"Activa\"\n            else \"Passiva\",\n        type text\n    )\nin\n    Categorie"
+              "expression": "// Grootboekrekeningen (dimensie) uit Exact Online Premium.\n// Verbinding via de Exact Online Premium-connector: ExactOnlinePremium.Contents().\n// In Premium staat het rekeningnummer in SearchCode; de koppelsleutel is ID (GUID).\nlet\n    Bron       = ExactOnlinePremium.Contents(),\n    dbo        = Bron{[Name = \"dbo\", Kind = \"Schema\"]}[Data],\n    GLAccounts = dbo{[Name = \"GLAccounts\", Kind = \"Table\"]}[Data],\n    Selectie   = Table.SelectColumns(\n        GLAccounts,\n        {\"ID\", \"Division\", \"SearchCode\", \"Description\", \"BalanceType\", \"BalanceSide\", \"Type\"}\n    ),\n    Types = Table.TransformColumnTypes(\n        Selectie,\n        {\n            {\"ID\", type text},\n            {\"Division\", Int64.Type},\n            {\"SearchCode\", type text},        // rekeningnummer\n            {\"Description\", type text},\n            {\"BalanceType\", type text},       // \"B\" = balans, \"W\" = winst & verlies\n            {\"BalanceSide\", type text},       // \"D\" = debet, \"C\" = credit\n            {\"Type\", Int64.Type}              // Exact-classificatie (10 = kas, 12 = bank, ...)\n        }\n    ),\n    // Afgeleide categorie voor rapportage (Premium heeft geen TypeDescription-kolom)\n    Categorie = Table.AddColumn(\n        Types,\n        \"Categorie\",\n        each\n            if [BalanceType] = \"W\" and [BalanceSide] = \"C\" then \"Opbrengsten\"\n            else if [BalanceType] = \"W\" then \"Kosten\"\n            else if [BalanceType] = \"B\" and [BalanceSide] = \"D\" then \"Activa\"\n            else \"Passiva\",\n        type text\n    ),\n    // GUID uniform maken (Premium schrijft ID hier met accolades/hoofdletters, maar in\n    // ReportingBalance zonder). Anders koppelen de tabellen niet.\n    Sleutel = Table.TransformColumns(\n        Categorie,\n        {{\"ID\", each if _ = null then null else Text.Lower(Text.Remove(_, {\"{\", \"}\"})), type text}}\n    )\nin\n    Sleutel"
             }
           }
         ],
@@ -188,7 +188,7 @@
             "mode": "import",
             "source": {
               "type": "m",
-              "expression": "// Grootboeksaldi per periode (feit) uit Exact Online Premium.\n// Verbinding via de Exact Online Premium-connector: ExactOnlinePremium.Contents().\n// Bedrag = AmountDCDebit - AmountDCCredit (netto, debet positief). Koppeling via GLAccount (GUID).\nlet\n    Bron             = ExactOnlinePremium.Contents(),\n    dbo              = Bron{[Name = \"dbo\", Kind = \"Schema\"]}[Data],\n    ReportingBalance = dbo{[Name = \"ReportingBalance\", Kind = \"Table\"]}[Data],\n    Selectie         = Table.SelectColumns(\n        ReportingBalance,\n        {\"Division\", \"ReportingYear\", \"ReportingPeriod\", \"GLAccount\",\n         \"AmountDCDebit\", \"AmountDCCredit\", \"Count\"}\n    ),\n    Types = Table.TransformColumnTypes(\n        Selectie,\n        {\n            {\"Division\", Int64.Type},\n            {\"ReportingYear\", Int64.Type},\n            {\"ReportingPeriod\", Int64.Type},   // 0 = beginbalans, 1-12 = maanden, 13-15 = jaarafsluiting\n            {\"GLAccount\", type text},          // GUID -> koppelt aan GLAccounts[ID]\n            {\"AmountDCDebit\", type number},\n            {\"AmountDCCredit\", type number},\n            {\"Count\", Int64.Type}\n        }\n    ),\n    // Netto bedrag in eigen valuta: debet positief, credit negatief\n    Bedrag = Table.AddColumn(Types, \"Amount\", each [AmountDCDebit] - [AmountDCCredit], type number),\n    // Koppelsleutel naar de Perioden-dimensie\n    MetKey = Table.AddColumn(Bedrag, \"PeriodeKey\", each [ReportingYear] * 100 + [ReportingPeriod], Int64.Type)\nin\n    MetKey"
+              "expression": "// Grootboeksaldi per periode (feit) uit Exact Online Premium.\n// Verbinding via de Exact Online Premium-connector: ExactOnlinePremium.Contents().\n// Bedrag = AmountDCDebit - AmountDCCredit (netto, debet positief). Koppeling via GLAccount (GUID).\nlet\n    Bron             = ExactOnlinePremium.Contents(),\n    dbo              = Bron{[Name = \"dbo\", Kind = \"Schema\"]}[Data],\n    ReportingBalance = dbo{[Name = \"ReportingBalance\", Kind = \"Table\"]}[Data],\n    Selectie         = Table.SelectColumns(\n        ReportingBalance,\n        {\"Division\", \"ReportingYear\", \"ReportingPeriod\", \"GLAccount\",\n         \"AmountDCDebit\", \"AmountDCCredit\", \"Count\"}\n    ),\n    Types = Table.TransformColumnTypes(\n        Selectie,\n        {\n            {\"Division\", Int64.Type},\n            {\"ReportingYear\", Int64.Type},\n            {\"ReportingPeriod\", Int64.Type},   // 0 = beginbalans, 1-12 = maanden, 13-15 = jaarafsluiting\n            {\"GLAccount\", type text},          // GUID -> koppelt aan GLAccounts[ID]\n            {\"AmountDCDebit\", type number},\n            {\"AmountDCCredit\", type number},\n            {\"Count\", Int64.Type}\n        }\n    ),\n    // GUID uniform maken zodat hij koppelt met GLAccounts[ID] (zonder accolades, kleine letters)\n    Sleutel = Table.TransformColumns(\n        Types,\n        {{\"GLAccount\", each if _ = null then null else Text.Lower(Text.Remove(_, {\"{\", \"}\"})), type text}}\n    ),\n    // Netto bedrag in eigen valuta: debet positief, credit negatief\n    Bedrag = Table.AddColumn(Sleutel, \"Amount\", each [AmountDCDebit] - [AmountDCCredit], type number),\n    // Koppelsleutel naar de Perioden-dimensie\n    MetKey = Table.AddColumn(Bedrag, \"PeriodeKey\", each [ReportingYear] * 100 + [ReportingPeriod], Int64.Type)\nin\n    MetKey"
             }
           }
         ],
@@ -244,7 +244,7 @@
     ],
     "relationships": [
       {
-        "name": "c0ce7b1e-f589-44f1-9009-e0d09cee0cb9",
+        "name": "53839966-28ff-4cc0-8348-ccbc457749be",
         "fromTable": "ReportingBalance",
         "fromColumn": "GLAccount",
         "toTable": "GLAccounts",
@@ -252,7 +252,7 @@
         "crossFilteringBehavior": "oneDirection"
       },
       {
-        "name": "82f224e4-3572-4bdf-80c4-1cbbac75bc0d",
+        "name": "c13917b5-ad63-4a22-82a8-1d8b19d3de6d",
         "fromTable": "ReportingBalance",
         "fromColumn": "PeriodeKey",
         "toTable": "Perioden",

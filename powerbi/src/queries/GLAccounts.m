@@ -31,6 +31,12 @@ let
             else if [BalanceType] = "B" and [BalanceSide] = "D" then "Activa"
             else "Passiva",
         type text
+    ),
+    // GUID uniform maken (Premium schrijft ID hier met accolades/hoofdletters, maar in
+    // ReportingBalance zonder). Anders koppelen de tabellen niet.
+    Sleutel = Table.TransformColumns(
+        Categorie,
+        {{"ID", each if _ = null then null else Text.Lower(Text.Remove(_, {"{", "}"})), type text}}
     )
 in
-    Categorie
+    Sleutel

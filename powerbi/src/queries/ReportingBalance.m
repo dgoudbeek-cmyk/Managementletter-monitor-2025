@@ -22,8 +22,13 @@ let
             {"Count", Int64.Type}
         }
     ),
+    // GUID uniform maken zodat hij koppelt met GLAccounts[ID] (zonder accolades, kleine letters)
+    Sleutel = Table.TransformColumns(
+        Types,
+        {{"GLAccount", each if _ = null then null else Text.Lower(Text.Remove(_, {"{", "}"})), type text}}
+    ),
     // Netto bedrag in eigen valuta: debet positief, credit negatief
-    Bedrag = Table.AddColumn(Types, "Amount", each [AmountDCDebit] - [AmountDCCredit], type number),
+    Bedrag = Table.AddColumn(Sleutel, "Amount", each [AmountDCDebit] - [AmountDCCredit], type number),
     // Koppelsleutel naar de Perioden-dimensie
     MetKey = Table.AddColumn(Bedrag, "PeriodeKey", each [ReportingYear] * 100 + [ReportingPeriod], Int64.Type)
 in
