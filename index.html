@@ -472,7 +472,7 @@
   }
 
   function render(){
-    var peil = CFG.peildatum || todayISO();
+    var peil = todayISO();                 /* altijd de huidige datum, zodat deadlines live worden getoetst */
     var today = new Date(peil+"T00:00:00");
     var recs = records();
 
@@ -554,7 +554,7 @@
             ]),
             h("div",{class:"head-right"},[
               h("div",{style:{textAlign:"right"}},[
-                h("div",{class:"peil-label"},"Peildatum"),
+                h("div",{class:"peil-label"},"Vandaag"),
                 h("div",{class:"peil-value"}, fmtDateLong(peil))
               ]),
               h("div",{class:"ring", style:{ background:"conic-gradient("+ACCENT+" "+(pct*3.6)+"deg, rgba(255,255,255,.18) 0deg)" }},
@@ -928,6 +928,16 @@
   } else {
     render();
     initSupabase();
+    /* dag-overgang: ververs de datum/deadlines automatisch, ook zonder herladen */
+    var lastDay = todayISO();
+    setInterval(function(){
+      var d = todayISO();
+      if(d !== lastDay){
+        lastDay = d;
+        var ae = document.activeElement;
+        if(!(ae && (ae.tagName === "TEXTAREA" || ae.tagName === "INPUT"))) render();
+      }
+    }, 60*1000);
   }
 })();
 </script>
