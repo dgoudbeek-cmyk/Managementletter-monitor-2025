@@ -20,6 +20,7 @@ publicatiebranch (zie [`.github/workflows/deploy-pages.yml`](.github/workflows/d
 | `index.html` | Het dashboard (HTML/CSS/JS, geen afhankelijkheden, geen build nodig). |
 | `data.js` | **De gedeelde bron van waarheid**: alle acties met status, notities en metadata. |
 | `.github/workflows/deploy-pages.yml` | Publiceert automatisch naar GitHub Pages. |
+| [`powerbi/`](powerbi/) | Power BI-template (`.pbit`) voor de live financiële managementrapportage uit Exact Online (via Invantive). Zie [`powerbi/README.md`](powerbi/README.md). |
 
 `data.js` bevat de **vaste** inhoud (themas, deadlines, bevindingen, owners). De
 **status, voortgangsnotities en gekoppelde documenten** worden real-time gedeeld

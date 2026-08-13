@@ -1,0 +1,278 @@
+{
+  "name": "3fab2518-9aea-4a26-aadf-bed71e940c51",
+  "compatibilityLevel": 1567,
+  "model": {
+    "culture": "nl-NL",
+    "dataAccessOptions": {
+      "legacyRedirects": true,
+      "returnErrorValuesAsNull": true
+    },
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "sourceQueryCulture": "nl-NL",
+    "tables": [
+      {
+        "name": "GLAccounts",
+        "columns": [
+          {
+            "name": "ID",
+            "dataType": "string",
+            "sourceColumn": "ID",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "Division",
+            "dataType": "int64",
+            "sourceColumn": "Division",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "SearchCode",
+            "dataType": "string",
+            "sourceColumn": "SearchCode",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Description",
+            "dataType": "string",
+            "sourceColumn": "Description",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "BalanceType",
+            "dataType": "string",
+            "sourceColumn": "BalanceType",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "BalanceSide",
+            "dataType": "string",
+            "sourceColumn": "BalanceSide",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Type",
+            "dataType": "int64",
+            "sourceColumn": "Type",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Categorie",
+            "dataType": "string",
+            "sourceColumn": "Categorie",
+            "summarizeBy": "none"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "GLAccounts",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "// Grootboekrekeningen (dimensie) uit Exact Online Premium.\n// Verbinding via de Exact Online Premium-connector: ExactOnlinePremium.Contents().\n// In Premium staat het rekeningnummer in SearchCode; de koppelsleutel is ID (GUID).\nlet\n    Bron       = ExactOnlinePremium.Contents(),\n    dbo        = Bron{[Name = \"dbo\", Kind = \"Schema\"]}[Data],\n    GLAccounts = dbo{[Name = \"GLAccounts\", Kind = \"Table\"]}[Data],\n    Selectie   = Table.SelectColumns(\n        GLAccounts,\n        {\"ID\", \"Division\", \"SearchCode\", \"Description\", \"BalanceType\", \"BalanceSide\", \"Type\"}\n    ),\n    Types = Table.TransformColumnTypes(\n        Selectie,\n        {\n            {\"ID\", type text},\n            {\"Division\", Int64.Type},\n            {\"SearchCode\", type text},        // rekeningnummer\n            {\"Description\", type text},\n            {\"BalanceType\", type text},       // \"B\" = balans, \"W\" = winst & verlies\n            {\"BalanceSide\", type text},       // \"D\" = debet, \"C\" = credit\n            {\"Type\", Int64.Type}              // Exact-classificatie (10 = kas, 12 = bank, ...)\n        }\n    ),\n    // Afgeleide categorie voor rapportage (Premium heeft geen TypeDescription-kolom)\n    Categorie = Table.AddColumn(\n        Types,\n        \"Categorie\",\n        each\n            if [BalanceType] = \"W\" and [BalanceSide] = \"C\" then \"Opbrengsten\"\n            else if [BalanceType] = \"W\" then \"Kosten\"\n            else if [BalanceType] = \"B\" and [BalanceSide] = \"D\" then \"Activa\"\n            else \"Passiva\",\n        type text\n    ),\n    // GUID uniform maken (Premium schrijft ID hier met accolades/hoofdletters, maar in\n    // ReportingBalance zonder). Anders koppelen de tabellen niet.\n    Sleutel = Table.TransformColumns(\n        Categorie,\n        {{\"ID\", each if _ = null then null else Text.Lower(Text.Remove(_, {\"{\", \"}\"})), type text}}\n    )\nin\n    Sleutel"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ]
+      },
+      {
+        "name": "Perioden",
+        "columns": [
+          {
+            "name": "Boekjaar",
+            "dataType": "int64",
+            "sourceColumn": "Boekjaar",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Periode",
+            "dataType": "int64",
+            "sourceColumn": "Periode",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "PeriodeKey",
+            "dataType": "int64",
+            "sourceColumn": "PeriodeKey",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "PeriodeLabel",
+            "dataType": "string",
+            "sourceColumn": "PeriodeLabel",
+            "summarizeBy": "none",
+            "sortByColumn": "SorteerKey"
+          },
+          {
+            "name": "SorteerKey",
+            "dataType": "int64",
+            "sourceColumn": "SorteerKey",
+            "summarizeBy": "none",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Perioden",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "// Perioden-dimensie (boekjaar + periode). Volledig in Power Query gegenereerd,\n// zodat er geen extra bron nodig is. Pas het bereik \"Jaren\" desgewenst aan.\nlet\n    Jaren    = {2023 .. 2028},\n    Perioden = {0 .. 15},                 // 0 = beginbalans, 1-12 = maanden, 13-15 = jaarafsluiting\n    Kruis    = List.Combine(\n        List.Transform(Jaren, (j) => List.Transform(Perioden, (p) => [Boekjaar = j, Periode = p]))\n    ),\n    Tabel    = Table.FromRecords(Kruis),\n    MetKey   = Table.AddColumn(Tabel, \"PeriodeKey\", each [Boekjaar] * 100 + [Periode], Int64.Type),\n    MetLabel = Table.AddColumn(\n        MetKey,\n        \"PeriodeLabel\",\n        each Text.From([Boekjaar]) & \"-P\" & Text.PadStart(Text.From([Periode]), 2, \"0\"),\n        type text\n    ),\n    Sorteer  = Table.AddColumn(MetLabel, \"SorteerKey\", each [PeriodeKey], Int64.Type),\n    Types    = Table.TransformColumnTypes(Sorteer, {{\"Boekjaar\", Int64.Type}, {\"Periode\", Int64.Type}})\nin\n    Types"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ]
+      },
+      {
+        "name": "ReportingBalance",
+        "columns": [
+          {
+            "name": "Division",
+            "dataType": "int64",
+            "sourceColumn": "Division",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "GLAccount",
+            "dataType": "string",
+            "sourceColumn": "GLAccount",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "ReportingYear",
+            "dataType": "int64",
+            "sourceColumn": "ReportingYear",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "ReportingPeriod",
+            "dataType": "int64",
+            "sourceColumn": "ReportingPeriod",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "Amount",
+            "dataType": "double",
+            "sourceColumn": "Amount",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "Count",
+            "dataType": "int64",
+            "sourceColumn": "Count",
+            "summarizeBy": "sum"
+          },
+          {
+            "name": "PeriodeKey",
+            "dataType": "int64",
+            "sourceColumn": "PeriodeKey",
+            "summarizeBy": "none",
+            "isHidden": true
+          }
+        ],
+        "partitions": [
+          {
+            "name": "ReportingBalance",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "// Grootboeksaldi per periode (feit) uit Exact Online Premium.\n// Verbinding via de Exact Online Premium-connector: ExactOnlinePremium.Contents().\n// Bedrag = AmountDCDebit - AmountDCCredit (netto, debet positief). Koppeling via GLAccount (GUID).\nlet\n    Bron             = ExactOnlinePremium.Contents(),\n    dbo              = Bron{[Name = \"dbo\", Kind = \"Schema\"]}[Data],\n    ReportingBalance = dbo{[Name = \"ReportingBalance\", Kind = \"Table\"]}[Data],\n    Selectie         = Table.SelectColumns(\n        ReportingBalance,\n        {\"Division\", \"ReportingYear\", \"ReportingPeriod\", \"GLAccount\",\n         \"AmountDCDebit\", \"AmountDCCredit\", \"Count\"}\n    ),\n    Types = Table.TransformColumnTypes(\n        Selectie,\n        {\n            {\"Division\", Int64.Type},\n            {\"ReportingYear\", Int64.Type},\n            {\"ReportingPeriod\", Int64.Type},   // 0 = beginbalans, 1-12 = maanden, 13-15 = jaarafsluiting\n            {\"GLAccount\", type text},          // GUID -> koppelt aan GLAccounts[ID]\n            {\"AmountDCDebit\", type number},\n            {\"AmountDCCredit\", type number},\n            {\"Count\", Int64.Type}\n        }\n    ),\n    // GUID uniform maken zodat hij koppelt met GLAccounts[ID] (zonder accolades, kleine letters)\n    Sleutel = Table.TransformColumns(\n        Types,\n        {{\"GLAccount\", each if _ = null then null else Text.Lower(Text.Remove(_, {\"{\", \"}\"})), type text}}\n    ),\n    // Netto bedrag in eigen valuta: debet positief, credit negatief\n    Bedrag = Table.AddColumn(Sleutel, \"Amount\", each [AmountDCDebit] - [AmountDCCredit], type number),\n    // Koppelsleutel naar de Perioden-dimensie\n    MetKey = Table.AddColumn(Bedrag, \"PeriodeKey\", each [ReportingYear] * 100 + [ReportingPeriod], Int64.Type)\nin\n    MetKey"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Omzet",
+            "expression": "-1 * CALCULATE (\n    SUM ( ReportingBalance[Amount] ),\n    GLAccounts[BalanceType] = \"W\",\n    GLAccounts[BalanceSide] = \"C\"\n)",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Kosten",
+            "expression": "CALCULATE (\n    SUM ( ReportingBalance[Amount] ),\n    GLAccounts[BalanceType] = \"W\",\n    GLAccounts[BalanceSide] = \"D\"\n)",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Resultaat",
+            "expression": "[Omzet] - [Kosten]",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Resultaatmarge %",
+            "expression": "DIVIDE ( [Resultaat], [Omzet] )",
+            "formatString": "0.0%"
+          },
+          {
+            "name": "Totaal activa",
+            "expression": "CALCULATE (\n    SUM ( ReportingBalance[Amount] ),\n    GLAccounts[BalanceType] = \"B\",\n    GLAccounts[BalanceSide] = \"D\"\n)",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Totaal passiva",
+            "expression": "-1 * CALCULATE (\n    SUM ( ReportingBalance[Amount] ),\n    GLAccounts[BalanceType] = \"B\",\n    GLAccounts[BalanceSide] = \"C\"\n)",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Liquide middelen",
+            "expression": "CALCULATE (\n    SUM ( ReportingBalance[Amount] ),\n    GLAccounts[Type] IN { 10, 12 }\n)",
+            "formatString": "€ #,0"
+          },
+          {
+            "name": "Aantal boekingen",
+            "expression": "SUM ( ReportingBalance[Count] )",
+            "formatString": "#,0"
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "53839966-28ff-4cc0-8348-ccbc457749be",
+        "fromTable": "ReportingBalance",
+        "fromColumn": "GLAccount",
+        "toTable": "GLAccounts",
+        "toColumn": "ID",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "c13917b5-ad63-4a22-82a8-1d8b19d3de6d",
+        "fromTable": "ReportingBalance",
+        "fromColumn": "PeriodeKey",
+        "toTable": "Perioden",
+        "toColumn": "PeriodeKey",
+        "crossFilteringBehavior": "oneDirection"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "PBI_QueryOrder",
+        "value": "[\"GLAccounts\", \"ReportingBalance\", \"Perioden\"]"
+      },
+      {
+        "name": "__PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      },
+      {
+        "name": "PBIDesktopVersion",
+        "value": "2.130.0.0"
+      }
+    ]
+  }
+}
